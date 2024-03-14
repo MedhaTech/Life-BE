@@ -28,7 +28,7 @@ export default class EvaluatorController extends BaseController {
     protected initializeRoutes(): void {
         //example route to add
         //this.router.get(`${this.path}/`, this.getData);
-        this.router.post(`${this.path}/register`, validationMiddleware(evaluatorRegSchema),this.register.bind(this));
+        this.router.post(`${this.path}/register`, validationMiddleware(evaluatorRegSchema), this.register.bind(this));
         this.router.post(`${this.path}/login`, this.login.bind(this));
         this.router.get(`${this.path}/logout`, this.logout.bind(this));
         this.router.put(`${this.path}/changePassword`, this.changePassword.bind(this));
@@ -37,26 +37,57 @@ export default class EvaluatorController extends BaseController {
         super.initializeRoutes();
     };
 
-    protected getData(req: Request, res: Response, next: NextFunction) {
-        if(res.locals.role !== 'ADMIN' && res.locals.role !== 'EADMIN' && res.locals.role !== 'EVALUATOR'){
-            throw unauthorized(speeches.ROLE_ACCES_DECLINE)
+    // protected getData(req: Request, res: Response, next: NextFunction) {
+    //     if (res.locals.role !== 'ADMIN' && res.locals.role !== 'EADMIN' && res.locals.role !== 'EVALUATOR') {
+    //         throw unauthorized(speeches.ROLE_ACCES_DECLINE)
+    //     }
+    //     return super.getData(req, res, next, [],
+    //         [
+    //             "evaluator_id", "district", "mobile", "status",
+    //         ], {
+    //         attributes: [
+    //             "user_id",
+    //             "username",
+    //             "full_name"
+    //         ], model: user, required: false
+    //     }
+    //     );
+    // }
+    protected async getData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'EADMIN' && res.locals.role !== 'EVALUATOR') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
-        return super.getData(req, res, next, [],
-            [
-                "evaluator_id", "district", "mobile", "status",
-            ], {
-            attributes: [
-                "user_id",
-                "username",
-                "full_name"
-            ], model: user, required: false
+        let data: any;
+        try {
+            data = await this.crudService.findAndCountAll(evaluator, {
+                attributes: [
+                    "evaluator_id", "district", "mobile", "status"
+                ],
+                include: {
+                    model: user,
+                    attributes: [
+                        "user_id",
+                        "username",
+                        "full_name"
+                    ]
+                }
+            }
+            )
+        } catch (error: any) {
+            return res.status(500).send(dispatcher(res, data, 'error'))
         }
-        );
-    }
-
+        if (!data || data instanceof Error) {
+            if (data != null) {
+                throw notFound(data.message)
+            } else {
+                throw notFound()
+            }
+        }
+        return res.status(200).send(dispatcher(res, data, 'success'));
+    };
     protected async updateData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        if(res.locals.role !== 'ADMIN' && res.locals.role !== 'EADMIN' && res.locals.role !== 'EVALUATOR'){
-            return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'EADMIN' && res.locals.role !== 'EVALUATOR') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
             const { model, id } = req.params;
@@ -126,8 +157,8 @@ export default class EvaluatorController extends BaseController {
     }
 
     private async changePassword(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        if(res.locals.role !== 'ADMIN' && res.locals.role !== 'EVALUATOR'){
-            return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'EVALUATOR') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         const result = await this.authService.changePassword(req.body, res);
         if (!result) {
