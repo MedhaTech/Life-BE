@@ -41,6 +41,7 @@ export default class ReportController extends BaseController {
         this.router.get(`${this.path}/L2ReportTable2`, this.getL2ReportTable2.bind(this));
         this.router.get(`${this.path}/L3ReportTable1`, this.getL3ReportTable1.bind(this));
         this.router.get(`${this.path}/L3ReportTable2`, this.getL3ReportTable2.bind(this));
+        this.router.get(`${this.path}/institutionReport`, this.getinstitutionReport.bind(this));
 
         // super.initializeRoutes();
     }
@@ -1413,6 +1414,63 @@ GROUP BY idea_id;`, { type: QueryTypes.SELECT });
             WHERE
                 i.status = 'SUBMITTED'
             GROUP BY district) AS disWiseCount ON districts.district_name = disWiseCount.district`, { type: QueryTypes.SELECT });
+            data = summary;
+            if (!data) {
+                throw notFound(speeches.DATA_NOT_FOUND)
+            }
+            if (data instanceof Error) {
+                throw data
+            }
+            res.status(200).send(dispatcher(res, data, "success"))
+        } catch (err) {
+            next(err)
+        }
+    }
+    protected async getinstitutionReport(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'EADMIN') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            let data: any = {}
+            let newREQQuery: any = {}
+            if (req.query.Data) {
+                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
+                newREQQuery = JSON.parse(newQuery);
+            } else if (Object.keys(req.query).length !== 0) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
+            }
+            const district = newREQQuery.district;
+            let wherefilter = '';
+            if (district) {
+                wherefilter = `WHERE org.state= '${district}'`;
+            }
+            const summary = await db.query(`SELECT 
+            institution_code,
+            district_name,
+            block_name,
+            place_name,
+            institution_name,
+            (SELECT 
+                    GROUP_CONCAT(DISTINCT it.institution_type
+                            SEPARATOR ', ') AS names
+                FROM
+                    institution_types AS it
+                        JOIN
+                    institutional_courses AS ic ON it.institution_type_id = ic.institution_type_id
+                WHERE
+                    ic.institution_id = ins.institution_id) AS 'Type of Institution',
+            principal_name,
+            principal_mobile,
+            principal_email,
+            principal_whatsapp_mobile
+        FROM
+            institutions AS ins
+                LEFT JOIN
+            places AS p ON ins.place_id = p.place_id
+                LEFT JOIN
+            blocks AS b ON p.block_id = b.block_id
+                LEFT JOIN
+            districts AS d ON b.district_id = d.district_id`, { type: QueryTypes.SELECT });
             data = summary;
             if (!data) {
                 throw notFound(speeches.DATA_NOT_FOUND)
