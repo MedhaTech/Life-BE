@@ -43,6 +43,7 @@ export default class ReportController extends BaseController {
         this.router.get(`${this.path}/L3ReportTable2`, this.getL3ReportTable2.bind(this));
         this.router.get(`${this.path}/institutionReport`, this.getinstitutionReport.bind(this));
         this.router.get(`${this.path}/ideaSubmissionReport`, this.getIdeaSubmissionReport.bind(this));
+        this.router.get(`${this.path}/ideaEvaluationReport`, this.getIdeaEvaluationReport.bind(this));
         // super.initializeRoutes();
     }
 
@@ -1559,6 +1560,96 @@ GROUP BY st.team_id) AS icNew ON i.team_id = icNew.team_id
 GROUP BY icNew.institution_id`, { type: QueryTypes.SELECT });
             data['summary'] = summary;
             data['ideaCountsSUBDRAFT'] = ideaCountsSUBDRAFT;
+            if (!data) {
+                throw notFound(speeches.DATA_NOT_FOUND)
+            }
+            if (data instanceof Error) {
+                throw data
+            }
+            res.status(200).send(dispatcher(res, data, "success"))
+        } catch (err) {
+            next(err)
+        }
+    }
+    protected async getIdeaEvaluationReport(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'EADMIN') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            let data: any = {}
+            let newREQQuery: any = {}
+            if (req.query.Data) {
+                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
+                newREQQuery = JSON.parse(newQuery);
+            } else if (Object.keys(req.query).length !== 0) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
+            }
+            const district = newREQQuery.district;
+            const institution_type_id = newREQQuery.institution_type_id;
+            let wherefilter = '';
+            if (district) {
+                wherefilter = `WHERE org.state= '${district}'`;
+            }
+            const summary = await db.query(`
+            SELECT 
+    institution_code,
+    district_name,
+    block_name,
+    place_name,
+    institution_name,
+    ic.institution_id
+FROM
+    students AS st
+        LEFT JOIN
+    institutional_courses AS ic ON st.institution_course_id = ic.institution_course_id
+        LEFT JOIN
+    institutions AS ins ON ic.institution_id = ins.institution_id
+        LEFT JOIN
+    places AS p ON ins.place_id = p.place_id
+        LEFT JOIN
+    blocks AS b ON p.block_id = b.block_id
+        LEFT JOIN
+    districts AS d ON b.district_id = d.district_id
+WHERE
+    ic.institution_type_id = ${institution_type_id}
+GROUP BY institution_code
+            `, { type: QueryTypes.SELECT });
+            const ideaL1L2evalCount = await db.query(`SELECT 
+            SUM(CASE
+                WHEN
+                    i.status = 'SUBMITTED'
+                        AND i.verified_by IS NOT NULL
+                THEN
+                    1
+                ELSE 0
+            END) AS 'No of ideas submitted',
+            SUM(CASE
+                WHEN i.evaluation_status IS NOT NULL THEN 1
+                ELSE 0
+            END) AS 'L1',
+            COUNT(evalCount.idea_id) AS 'L2',
+            icNew.institution_id
+        FROM
+            ideas AS i
+                JOIN
+            (SELECT 
+                st.team_id, ic.institution_id
+            FROM
+                students AS st
+            LEFT JOIN institutional_courses AS ic ON st.institution_course_id = ic.institution_course_id
+            WHERE
+                ic.institution_type_id = ${institution_type_id}
+            GROUP BY st.team_id) AS icNew ON i.team_id = icNew.team_id
+                LEFT JOIN
+            (SELECT 
+                idea_id
+            FROM
+                unisolve_db.evaluator_ratings
+            GROUP BY idea_id
+            HAVING COUNT(*) >= 3) AS evalCount ON i.idea_id = evalCount.idea_id
+        GROUP BY icNew.institution_id`, { type: QueryTypes.SELECT });
+            data['summary'] = summary;
+            data['ideaCountsSUBDRAFT'] = ideaL1L2evalCount;
             if (!data) {
                 throw notFound(speeches.DATA_NOT_FOUND)
             }
