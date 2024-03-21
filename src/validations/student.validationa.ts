@@ -52,7 +52,7 @@ export const studentUpdateSchema = Joi.object().keys({
     student_full_name: Joi.string().trim().min(1).regex(constents.ALPHA_NUMERIC_PATTERN),
     date_of_birth: Joi.date(),
     mobile: Joi.string().trim().regex(constents.ONLY_DIGIT_PATTERN),
-    email:Joi.string().email(),
+    email:Joi.string(),
     Gender: Joi.string().valid(...Object.values(constents.gender_flags.list)),
     Age: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     username:Joi.string().trim().regex(constents.ONLY_DIGIT_PATTERN)
@@ -67,7 +67,7 @@ export const studentRegSchema = Joi.object().keys({
     student_full_name: Joi.string().trim().min(1).regex(constents.ALPHA_NUMERIC_PATTERN),
     date_of_birth: Joi.date(),
     mobile: Joi.string().trim().regex(constents.ONLY_DIGIT_PATTERN),
-    email:Joi.string().email(),
+    email:Joi.string(),
     Gender: Joi.string().valid(...Object.values(constents.gender_flags.list)),
     Age: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     username:Joi.string().trim().regex(constents.ONLY_DIGIT_PATTERN),
