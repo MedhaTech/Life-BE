@@ -325,6 +325,11 @@ export default class DashboardService extends BaseService {
      */
     getDbLieralIdeaSubmission(addWhereClauseStatusPart: any, whereClauseStatusPartLiteral: any) {
         return `
+        select count(*) from ideas as idea where idea.team_id = \`student\`.\`team_id\` and status = "SUBMITTED" and verified_by IS NOT NULL
+        `
+    }
+    getDbLieralPFA(addWhereClauseStatusPart: any, whereClauseStatusPartLiteral: any) {
+        return `
         select count(*) from ideas as idea where idea.team_id = \`student\`.\`team_id\` and status = "SUBMITTED"
         `
     }
