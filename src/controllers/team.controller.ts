@@ -15,6 +15,7 @@ import { user } from "../models/user.model";
 import { mentor } from "../models/mentor.model";
 import { challenge_response } from "../models/challenge_response.model";
 import { streams } from "../models/streams.model";
+import { ideas } from "../models/ideas.model";
 
 export default class TeamController extends BaseController {
 
@@ -152,6 +153,13 @@ export default class TeamController extends BaseController {
                             AND
                                 s.team_id = \`team\`.\`team_id\`
                         )`), 'student_count'
+                    ],
+                    [
+                        db.literal(`(
+                            SELECT ifnull(verified_by,'Pending')
+                            FROM ideas AS idea
+                            WHERE idea.team_id = \`team\`.\`team_id\`
+                        )`), 'PFAStatus'
                     ],
                     [
                         db.literal(`(
@@ -385,6 +393,10 @@ export default class TeamController extends BaseController {
             };
             const where: any = {};
             const newParamId = await this.authService.decryptGlobal(req.params.id);
+            const findIdea = await this.crudService.findOne(ideas,{where : {team_id:newParamId}})
+            if(findIdea){
+                throw badRequest(speeches.IDEAEXISTS)
+            }
             where[`${this.model}_id`] = newParamId;
             const getTeamDetails = await this.crudService.findOne(await this.loadModel(model), {
                 attributes: ["team_id", "mentor_id"],
@@ -406,7 +418,7 @@ export default class TeamController extends BaseController {
                 }
             };
             if (deleteTeam >= 1) {
-                deletingChallengeDetails = await this.crudService.delete(challenge_response, { where: { team_id: getTeamDetails.dataValues.team_id } });
+                deletingChallengeDetails = await this.crudService.delete(ideas, { where: { team_id: getTeamDetails.dataValues.team_id } });
                 deletingTeamDetails = await this.crudService.delete(await this.loadModel(model), { where: where });
             }
             return res.status(200).send(dispatcher(res, deletingTeamDetails, 'deleted'));
