@@ -87,7 +87,11 @@ export default class ideasController extends BaseController {
         } else if (paramStatus === 'ALL') {
             whereClauseStatusPart = {};
             boolStatusWhereClauseEvaluationStatusRequired = false;
-        } else {
+        } else if (paramStatus === 'PENDINGFORAPPROVAL') {
+            whereClauseStatusPart = { "status": "PENDINGFORAPPROVAL" };
+            boolStatusWhereClauseEvaluationStatusRequired = true;
+        }
+        else {
             whereClauseStatusPart = { "status": "SUBMITTED" };
             boolStatusWhereClauseEvaluationStatusRequired = true;
         };
@@ -588,9 +592,9 @@ export default class ideasController extends BaseController {
                     if (whereClauseStatusPart.status === 'SUBMITTED') {
                         submitedWhereCodition = { verified_by: { [Op.ne]: null } }
                     }
-                    if (whereClauseStatusPart.status === 'DRAFT') {
+                    if (whereClauseStatusPart.status === 'PENDINGFORAPPROVAL') {
                         submitedWhereCodition = { verified_by: { [Op.is]: null } }
-                        whereClauseStatusPart = {}
+                        whereClauseStatusPart.status = 'SUBMITTED'
                     }
                     responseOfFindAndCountAll = await this.crudService.findAndCountAll(ideas, {
                         attributes: [
