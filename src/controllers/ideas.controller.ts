@@ -1162,6 +1162,7 @@ export default class ideasController extends BaseController {
                                 "district",
                                 "evaluation_status",
                                 "rejected_reason",
+                                "evaluated_at",
                                 [
                                     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
                                 ],
@@ -1228,6 +1229,7 @@ export default class ideasController extends BaseController {
                                 "verified_at",
                                 "district",
                                 "evaluation_status",
+                                "evaluated_at",
                                 [
                                     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
                                 ],

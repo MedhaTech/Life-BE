@@ -70,6 +70,13 @@ export default class StudentService extends BaseService{
                     ],
                     [
                         db.literal(`(
+                            ${serviceDashboard.getDbLieralPFA(addWhereClauseStatusPart,
+                            whereClauseStatusPartLiteral)}
+                            )`),
+                        "PendingForApproval"
+                    ],
+                    [
+                        db.literal(`(
                             ${serviceDashboard.getDbLieralIdeaSubmission(addWhereClauseStatusPart,
                             whereClauseStatusPartLiteral)}
                             )`),
