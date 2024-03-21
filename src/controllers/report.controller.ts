@@ -432,6 +432,16 @@ export default class ReportController extends BaseController {
                     students ON teams.team_id = students.team_id
                 WHERE
                     teams.mentor_id = m.mentor_id) AS student_count,
+                    (SELECT 
+                        COUNT(*) AS 'Pending for approval'
+                    FROM
+                        teams
+                            JOIN
+                        ideas ON teams.team_id = ideas.team_id
+                    WHERE
+                    ideas.status = 'SUBMITTED'
+                    AND ideas.verified_by IS NULL
+                    AND teams.mentor_id = m.mentor_id) AS PFACount,
             (SELECT 
                     COUNT(*) AS submittedcout
                 FROM
@@ -449,9 +459,7 @@ export default class ReportController extends BaseController {
                         JOIN
                     ideas ON teams.team_id = ideas.team_id
                 WHERE
-                (ideas.status = 'DRAFT'
-                || (ideas.status = 'SUBMITTED'
-                AND ideas.verified_by IS NULL))
+                ideas.status = 'DRAFT'
                 AND teams.mentor_id = m.mentor_id) AS draftcout
         FROM
             (mentors AS m)
@@ -1528,36 +1536,39 @@ WHERE
     ic.institution_type_id = ${institution_type_id}
 GROUP BY institution_code`, { type: QueryTypes.SELECT });
             const ideaCountsSUBDRAFT = await db.query(`SELECT 
-SUM(CASE
-    WHEN
-        i.status = 'SUBMITTED'
-            AND i.verified_by IS NOT NULL
-    THEN
-        1
-    ELSE 0
-END) AS 'No of ideas submitted',
-SUM(CASE
-    WHEN
-        (i.status = 'DRAFT'
-            || (i.status = 'SUBMITTED'
-            AND i.verified_by IS NULL))
-    THEN
-        1
-    ELSE 0
-END) AS 'No of ideas draft',
-icNew.institution_id
-FROM
-ideas AS i
-    JOIN
-(SELECT 
-    st.team_id, ic.institution_id
-FROM
-    students AS st
-LEFT JOIN institutional_courses AS ic ON st.institution_course_id = ic.institution_course_id
-WHERE
-    ic.institution_type_id = ${institution_type_id}
-GROUP BY st.team_id) AS icNew ON i.team_id = icNew.team_id
-GROUP BY icNew.institution_id`, { type: QueryTypes.SELECT });
+            SUM(CASE
+                WHEN
+                    i.status = 'SUBMITTED'
+                        AND i.verified_by IS NULL
+                THEN
+                    1
+                ELSE 0
+            END) AS 'No of ideas Pending For Approval',
+            SUM(CASE
+                WHEN
+                    i.status = 'SUBMITTED'
+                        AND i.verified_by IS NOT NULL
+                THEN
+                    1
+                ELSE 0
+            END) AS 'No of ideas submitted',
+            SUM(CASE
+                WHEN i.status = 'DRAFT' THEN 1
+                ELSE 0
+            END) AS 'No of ideas draft',
+            icNew.institution_id
+        FROM
+            ideas AS i
+                JOIN
+            (SELECT 
+                st.team_id, ic.institution_id
+            FROM
+                students AS st
+            LEFT JOIN institutional_courses AS ic ON st.institution_course_id = ic.institution_course_id
+            WHERE
+                ic.institution_type_id = ${institution_type_id}
+            GROUP BY st.team_id) AS icNew ON i.team_id = icNew.team_id
+        GROUP BY icNew.institution_id`, { type: QueryTypes.SELECT });
             data['summary'] = summary;
             data['ideaCountsSUBDRAFT'] = ideaCountsSUBDRAFT;
             if (!data) {

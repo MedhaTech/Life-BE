@@ -1072,6 +1072,25 @@ export default class DashboardController extends BaseController {
                     && verified_by IS NOT NULL) AS temp ON te.team_id = temp.team_id
         WHERE
             ins.status = 'ACTIVE'`, { type: QueryTypes.SELECT })
+            const PFACount = await db.query(`SELECT 
+            COUNT(te.team_id) AS PFACountCount
+        FROM
+            teams AS te
+                JOIN
+            mentors AS mn ON te.mentor_id = mn.mentor_id
+                JOIN
+            institutions AS ins ON ins.institution_id = mn.institution_id
+                JOIN
+            (SELECT 
+                team_id, status
+            FROM
+                ideas
+            WHERE
+                status = 'SUBMITTED'
+                    && verified_by IS NULL) AS temp ON te.team_id = temp.team_id
+        WHERE
+            ins.status = 'ACTIVE'`, { type: QueryTypes.SELECT })
+            result['PFACount'] = Object.values(PFACount[0]).toString()
             result['initiated_ideas'] = Object.values(fullCount[0]).toString()
             result['submitted_ideas'] = Object.values(submittedCount[0]).toString()
             res.status(200).send(dispatcher(res, result, 'done'))
