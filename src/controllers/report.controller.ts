@@ -1511,6 +1511,9 @@ GROUP BY idea_id;`, { type: QueryTypes.SELECT });
             if (district) {
                 wherefilter = `WHERE org.state= '${district}'`;
             }
+            await db.query(`SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`, {
+                type: QueryTypes.RAW,
+            });
             const summary = await db.query(`
             SELECT 
     institution_code,
