@@ -1433,7 +1433,7 @@ WHERE
             if (district) {
                 result = await db.query(`
                 SELECT 
-    COUNT(DISTINCT mn.institution_id) AS RegInstitutions
+    COUNT(DISTINCT mn.institution_id) AS RegSchools
 FROM
     mentors AS mn
         JOIN
@@ -1481,7 +1481,7 @@ WHERE
             if (district) {
                 result = await db.query(`select count(*) InvalidInstitutions from institutions where place_id = 0;`, { type: QueryTypes.SELECT })
             } else {
-                result = {RegInstitutions :0}
+                result = {InvalidInstitutions : 0 }
             }
 
             res.status(200).send(dispatcher(res, result, 'done'))
