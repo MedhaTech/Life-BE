@@ -75,6 +75,7 @@ export default class DashboardController extends BaseController {
         this.router.get(`${this.path}/studentCountbygender`, this.getstudentCountbygender.bind(this));
         this.router.get(`${this.path}/schoolCount`, this.getSchoolCount.bind(this));
         this.router.get(`${this.path}/schoolRegCount`, this.getschoolRegCount.bind(this));
+        this.router.get(`${this.path}/invalidInst`, this.getinvalidInst.bind(this));
         //this.router.get(`${this.path}/mentorCourseCount`,this.getmentorCourseCount.bind(this));
         //this.router.get(`${this.path}/ATLNonATLRegCount`,this.getATLNonATLRegCount.bind(this));
 
@@ -825,7 +826,7 @@ export default class DashboardController extends BaseController {
             } else if (Object.keys(req.query).length !== 0) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
             }
-            const { mentor_id, institution_id } = newREQQuery
+            const { mentor_id, institution_id, district } = newREQQuery
             if (mentor_id) {
                 result = await db.query(`SELECT count(*) as teams_count FROM teams where mentor_id = ${mentor_id}`, { type: QueryTypes.SELECT });
             } else if (institution_id) {
@@ -838,6 +839,25 @@ export default class DashboardController extends BaseController {
             WHERE
                 institution_id = ${institution_id};
                 `, { type: QueryTypes.SELECT });
+            }
+            else if (district) {
+                result = await db.query(`SELECT 
+                COUNT(t.team_id) AS teams_count
+            FROM
+                institutions AS ins
+                    LEFT JOIN
+                mentors AS mn ON ins.institution_id = mn.institution_id
+                    INNER JOIN
+                teams AS t ON mn.mentor_id = t.mentor_id
+                    JOIN
+                places AS p ON ins.place_id = p.place_id
+                    JOIN
+                blocks AS b ON p.block_id = b.block_id
+                    JOIN
+                districts AS d ON b.district_id = d.district_id
+            WHERE
+                ins.status = 'ACTIVE'
+                    AND d.district_name = '${district}';`, { type: QueryTypes.SELECT });
             }
             else {
                 result = await db.query(`SELECT 
@@ -871,7 +891,7 @@ export default class DashboardController extends BaseController {
             } else if (Object.keys(req.query).length !== 0) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
             }
-            const { mentor_id, institution_id } = newREQQuery
+            const { mentor_id, institution_id, district } = newREQQuery
             if (mentor_id) {
                 result = await db.query(`SELECT count(*) as student_count FROM students join teams on students.team_id = teams.team_id  where mentor_id = ${mentor_id};`, { type: QueryTypes.SELECT });
             } else if (institution_id) {
@@ -885,6 +905,26 @@ export default class DashboardController extends BaseController {
                 mentors ON teams.mentor_id = mentors.mentor_id
             WHERE
                 institution_id = ${institution_id};`, { type: QueryTypes.SELECT });
+            } else if (district) {
+                result = await db.query(`SELECT 
+                COUNT(st.student_id) AS student_count
+            FROM
+                institutions AS ins
+                    LEFT JOIN
+                mentors AS mn ON ins.institution_id = mn.institution_id
+                    INNER JOIN
+                teams AS t ON mn.mentor_id = t.mentor_id
+                    INNER JOIN
+                students AS st ON st.team_id = t.team_id
+                    JOIN
+                places AS p ON ins.place_id = p.place_id
+                    JOIN
+                blocks AS b ON p.block_id = b.block_id
+                    JOIN
+                districts AS d ON b.district_id = d.district_id
+            WHERE
+                ins.status = 'ACTIVE'
+                    AND d.district_name = '${district}';`, { type: QueryTypes.SELECT });
             }
             else {
                 result = await db.query(`SELECT 
@@ -1037,9 +1077,95 @@ export default class DashboardController extends BaseController {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
+            let newREQQuery: any = {}
+            if (req.query.Data) {
+                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
+                newREQQuery = JSON.parse(newQuery);
+            } else if (Object.keys(req.query).length !== 0) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
+            }
+            const district = newREQQuery.district;
             let result: any = {};
-
-            const fullCount = await db.query(`SELECT 
+            if (district) {
+                const fullCount = await db.query(`
+                SELECT 
+    COUNT(te.team_id) AS initiated
+FROM
+    teams AS te
+        JOIN
+    mentors AS mn ON te.mentor_id = mn.mentor_id
+        JOIN
+    institutions AS ins ON ins.institution_id = mn.institution_id
+        JOIN
+    (SELECT 
+        team_id, status
+    FROM
+        ideas) AS temp ON te.team_id = temp.team_id
+        JOIN
+    places AS p ON ins.place_id = p.place_id
+        JOIN
+    blocks AS b ON p.block_id = b.block_id
+        JOIN
+    districts AS d ON b.district_id = d.district_id
+WHERE
+    ins.status = 'ACTIVE'
+        AND d.district_name = '${district}';`, { type: QueryTypes.SELECT });
+                const submittedCount = await db.query(`SELECT 
+                COUNT(te.team_id) AS submittedCount
+            FROM
+                teams AS te
+                    JOIN
+                mentors AS mn ON te.mentor_id = mn.mentor_id
+                    JOIN
+                institutions AS ins ON ins.institution_id = mn.institution_id
+                    JOIN
+                (SELECT 
+                    team_id, status
+                FROM
+                    ideas
+                WHERE
+                    status = 'SUBMITTED'
+                        && verified_by IS NOT NULL) AS temp ON te.team_id = temp.team_id
+                    JOIN
+                places AS p ON ins.place_id = p.place_id
+                    JOIN
+                blocks AS b ON p.block_id = b.block_id
+                    JOIN
+                districts AS d ON b.district_id = d.district_id
+            WHERE
+                ins.status = 'ACTIVE'
+                    AND d.district_name = '${district}';`, { type: QueryTypes.SELECT })
+                const PFACount = await db.query(`
+                SELECT 
+    COUNT(te.team_id) AS submittedCount
+FROM
+    teams AS te
+        JOIN
+    mentors AS mn ON te.mentor_id = mn.mentor_id
+        JOIN
+    institutions AS ins ON ins.institution_id = mn.institution_id
+        JOIN
+    (SELECT 
+        team_id, status
+    FROM
+        ideas
+    WHERE
+        status = 'SUBMITTED'
+            && verified_by IS NULL) AS temp ON te.team_id = temp.team_id
+        JOIN
+    places AS p ON ins.place_id = p.place_id
+        JOIN
+    blocks AS b ON p.block_id = b.block_id
+        JOIN
+    districts AS d ON b.district_id = d.district_id
+WHERE
+    ins.status = 'ACTIVE'
+        AND d.district_name = '${district}';`, { type: QueryTypes.SELECT })
+                result['PFACount'] = Object.values(PFACount[0]).toString()
+                result['initiated_ideas'] = Object.values(fullCount[0]).toString()
+                result['submitted_ideas'] = Object.values(submittedCount[0]).toString()
+            } else {
+                const fullCount = await db.query(`SELECT 
             COUNT(te.team_id) AS initiated
         FROM
             teams AS te
@@ -1054,7 +1180,7 @@ export default class DashboardController extends BaseController {
                 ideas) AS temp ON te.team_id = temp.team_id
         WHERE
             ins.status = 'ACTIVE'`, { type: QueryTypes.SELECT });
-            const submittedCount = await db.query(`SELECT 
+                const submittedCount = await db.query(`SELECT 
             COUNT(te.team_id) AS submittedCount
         FROM
             teams AS te
@@ -1072,7 +1198,7 @@ export default class DashboardController extends BaseController {
                     && verified_by IS NOT NULL) AS temp ON te.team_id = temp.team_id
         WHERE
             ins.status = 'ACTIVE'`, { type: QueryTypes.SELECT })
-            const PFACount = await db.query(`SELECT 
+                const PFACount = await db.query(`SELECT 
             COUNT(te.team_id) AS PFACountCount
         FROM
             teams AS te
@@ -1090,9 +1216,11 @@ export default class DashboardController extends BaseController {
                     && verified_by IS NULL) AS temp ON te.team_id = temp.team_id
         WHERE
             ins.status = 'ACTIVE'`, { type: QueryTypes.SELECT })
-            result['PFACount'] = Object.values(PFACount[0]).toString()
-            result['initiated_ideas'] = Object.values(fullCount[0]).toString()
-            result['submitted_ideas'] = Object.values(submittedCount[0]).toString()
+                result['PFACount'] = Object.values(PFACount[0]).toString()
+                result['initiated_ideas'] = Object.values(fullCount[0]).toString()
+                result['submitted_ideas'] = Object.values(submittedCount[0]).toString()
+            }
+
             res.status(200).send(dispatcher(res, result, 'done'))
         }
         catch (err) {
@@ -1105,8 +1233,52 @@ export default class DashboardController extends BaseController {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
+            let newREQQuery: any = {}
+            if (req.query.Data) {
+                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
+                newREQQuery = JSON.parse(newQuery);
+            } else if (Object.keys(req.query).length !== 0) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
+            }
+            const district = newREQQuery.district;
             let result: any = {};
-            const mentorCount = await db.query(`SELECT 
+            let mentorCount: any = {};
+            let mentorMale: any = {};
+            if (district) {
+                mentorCount = await db.query(`SELECT 
+                COUNT(mn.mentor_id) AS totalmentor
+            FROM
+                institutions AS ins
+                    LEFT JOIN
+                mentors AS mn ON ins.institution_id = mn.institution_id
+                    JOIN
+                places AS p ON ins.place_id = p.place_id
+                    JOIN
+                blocks AS b ON p.block_id = b.block_id
+                    JOIN
+                districts AS d ON b.district_id = d.district_id
+            WHERE
+                ins.status = 'ACTIVE'
+                    AND d.district_name = '${district}';`, { type: QueryTypes.SELECT });
+                mentorMale = await db.query(`
+            SELECT 
+    COUNT(mn.mentor_id) AS mentorMale
+FROM
+    institutions AS ins
+        LEFT JOIN
+    mentors AS mn ON ins.institution_id = mn.institution_id
+        JOIN
+    places AS p ON ins.place_id = p.place_id
+        JOIN
+    blocks AS b ON p.block_id = b.block_id
+        JOIN
+    districts AS d ON b.district_id = d.district_id
+WHERE
+    ins.status = 'ACTIVE'
+        AND mn.gender = 'Male'
+        AND d.district_name = '${district}';`, { type: QueryTypes.SELECT })
+            } else {
+                mentorCount = await db.query(`SELECT 
             COUNT(mn.mentor_id) AS totalmentor
         FROM
             institutions AS ins
@@ -1114,7 +1286,7 @@ export default class DashboardController extends BaseController {
             mentors AS mn ON ins.institution_id = mn.institution_id
         WHERE
             ins.status = 'ACTIVE';`, { type: QueryTypes.SELECT });
-            const mentorMale = await db.query(`SELECT 
+                mentorMale = await db.query(`SELECT 
             COUNT(mn.mentor_id) AS mentorMale
         FROM
             institutions AS ins
@@ -1123,6 +1295,8 @@ export default class DashboardController extends BaseController {
         WHERE
             ins.status = 'ACTIVE'
                 && mn.gender = 'Male';`, { type: QueryTypes.SELECT })
+            }
+
             result['mentorCount'] = Object.values(mentorCount[0]).toString()
             result['mentorMale'] = Object.values(mentorMale[0]).toString()
             res.status(200).send(dispatcher(res, result, 'done'))
@@ -1136,29 +1310,69 @@ export default class DashboardController extends BaseController {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
+            let newREQQuery: any = {}
+            if (req.query.Data) {
+                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
+                newREQQuery = JSON.parse(newQuery);
+            } else if (Object.keys(req.query).length !== 0) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
+            }
+            const district = newREQQuery.district;
             let result: any = {};
-            const student = await db.query(`SELECT 
-            SUM(CASE
-                WHEN st.gender = 'MALE' THEN 1
-                ELSE 0
-            END) AS male,
-            SUM(CASE
-                WHEN st.gender = 'FEMALE' THEN 1
-                ELSE 0
-            END) AS female
-        FROM
-            institutions AS ins
-                LEFT JOIN
-            mentors AS mn ON ins.institution_id = mn.institution_id
-                INNER JOIN
-            teams AS t ON mn.mentor_id = t.mentor_id
-                INNER JOIN
-            students AS st ON st.team_id = t.team_id
-        WHERE
-            ins.status = 'ACTIVE';
-        `, { type: QueryTypes.SELECT });
-            result['studentMale'] = Object.values(student[0])[0].toString();
-            result['studentFemale'] = Object.values(student[0])[1].toString();
+            if (district) {
+                const student = await db.query(`SELECT 
+                COALESCE(SUM(CASE
+                    WHEN st.gender = 'MALE' THEN 1
+                    ELSE 0
+                END),0) AS male,
+                COALESCE(SUM(CASE
+                    WHEN st.gender = 'FEMALE' THEN 1
+                    ELSE 0
+                END) ,0)AS female
+            FROM
+                institutions AS ins
+                    LEFT JOIN
+                mentors AS mn ON ins.institution_id = mn.institution_id
+                    INNER JOIN
+                teams AS t ON mn.mentor_id = t.mentor_id
+                    INNER JOIN
+                students AS st ON st.team_id = t.team_id
+                    JOIN
+                places AS p ON ins.place_id = p.place_id
+                    JOIN
+                blocks AS b ON p.block_id = b.block_id
+                    JOIN
+                districts AS d ON b.district_id = d.district_id
+            WHERE
+                ins.status = 'ACTIVE'
+                    AND d.district_name = '${district}';
+            `, { type: QueryTypes.SELECT });
+                result['studentMale'] = Object.values(student[0])[0].toString();
+                result['studentFemale'] = Object.values(student[0])[1].toString();
+            } else {
+                const student = await db.query(`SELECT 
+                COALESCE(SUM(CASE
+                    WHEN st.gender = 'MALE' THEN 1
+                    ELSE 0
+                END),0)AS male,
+                COALESCE(SUM(CASE
+                    WHEN st.gender = 'FEMALE' THEN 1
+                    ELSE 0
+                END),0) AS female
+            FROM
+                institutions AS ins
+                    LEFT JOIN
+                mentors AS mn ON ins.institution_id = mn.institution_id
+                    INNER JOIN
+                teams AS t ON mn.mentor_id = t.mentor_id
+                    INNER JOIN
+                students AS st ON st.team_id = t.team_id
+            WHERE
+                ins.status = 'ACTIVE';
+            `, { type: QueryTypes.SELECT });
+                result['studentMale'] = Object.values(student[0])[0].toString();
+                result['studentFemale'] = Object.values(student[0])[1].toString();
+            }
             res.status(200).send(dispatcher(res, result, 'done'))
         }
         catch (err) {
@@ -1170,8 +1384,32 @@ export default class DashboardController extends BaseController {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
+            let newREQQuery: any = {}
+            if (req.query.Data) {
+                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
+                newREQQuery = JSON.parse(newQuery);
+            } else if (Object.keys(req.query).length !== 0) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
+            }
+            const district = newREQQuery.district;
             let result: any = {};
-            result = await db.query(`SELECT count(*) as schoolCount FROM institutions WHERE status='ACTIVE';`, { type: QueryTypes.SELECT })
+            if (district) {
+                result = await db.query(`SELECT 
+                COUNT(*) AS schoolCount
+            FROM
+                institutions AS ins
+                    JOIN
+                places AS p ON ins.place_id = p.place_id
+                    JOIN
+                blocks AS b ON p.block_id = b.block_id
+                    JOIN
+                districts AS d ON b.district_id = d.district_id
+            WHERE
+                ins.status = 'ACTIVE'
+                    AND d.district_name = '${district}'`, { type: QueryTypes.SELECT })
+            } else {
+                result = await db.query(`SELECT count(*) as schoolCount FROM institutions WHERE status='ACTIVE';`, { type: QueryTypes.SELECT })
+            }
             res.status(200).send(dispatcher(res, result, 'done'))
         }
         catch (err) {
@@ -1179,16 +1417,74 @@ export default class DashboardController extends BaseController {
         }
     }
     protected async getschoolRegCount(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'MENTOR') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
         try {
-            const mentorCount = await db.query(`SELECT 
-            COUNT(DISTINCT mn.institution_id) AS RegSchools
-        FROM
-            mentors AS mn
-                JOIN
-            institutions AS ins ON mn.institution_id = ins.institution_id
-        WHERE
-            ins.status = 'ACTIVE';`, { type: QueryTypes.SELECT });
-            res.status(200).send(dispatcher(res, mentorCount, 'done'))
+            let newREQQuery: any = {}
+            if (req.query.Data) {
+                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
+                newREQQuery = JSON.parse(newQuery);
+            } else if (Object.keys(req.query).length !== 0) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
+            }
+            const district = newREQQuery.district;
+            let result: any = {};
+            if (district) {
+                result = await db.query(`
+                SELECT 
+    COUNT(DISTINCT mn.institution_id) AS RegSchools
+FROM
+    mentors AS mn
+        JOIN
+    institutions AS ins ON mn.institution_id = ins.institution_id
+        JOIN
+    places AS p ON ins.place_id = p.place_id
+        JOIN
+    blocks AS b ON p.block_id = b.block_id
+        JOIN
+    districts AS d ON b.district_id = d.district_id
+WHERE
+    ins.status = 'ACTIVE'
+        AND d.district_name = '${district}'`, { type: QueryTypes.SELECT })
+            } else {
+                result = await db.query(`SELECT 
+                COUNT(DISTINCT mn.institution_id) AS RegSchools
+            FROM
+                mentors AS mn
+                    JOIN
+                institutions AS ins ON mn.institution_id = ins.institution_id
+            WHERE
+                ins.status = 'ACTIVE';`, { type: QueryTypes.SELECT });
+            }
+
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+    protected async getinvalidInst(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'MENTOR') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            let newREQQuery: any = {}
+            if (req.query.Data) {
+                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
+                newREQQuery = JSON.parse(newQuery);
+            } else if (Object.keys(req.query).length !== 0) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
+            }
+            const district = newREQQuery.district;
+            let result: any = {};
+            if (district) {
+                result = {InvalidInstitutions : 0 }
+            } else {
+                result = await db.query(`select count(*) InvalidInstitutions from institutions where place_id = 0;`, { type: QueryTypes.SELECT })
+            }
+
+            res.status(200).send(dispatcher(res, result, 'done'))
         }
         catch (err) {
             next(err)
