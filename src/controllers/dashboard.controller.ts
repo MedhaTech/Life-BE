@@ -1321,14 +1321,14 @@ WHERE
             let result: any = {};
             if (district) {
                 const student = await db.query(`SELECT 
-                SUM(CASE
+                COALESCE(SUM(CASE
                     WHEN st.gender = 'MALE' THEN 1
                     ELSE 0
-                END) AS male,
-                SUM(CASE
+                END),0) AS male,
+                COALESCE(SUM(CASE
                     WHEN st.gender = 'FEMALE' THEN 1
                     ELSE 0
-                END) AS female
+                END) ,0)AS female
             FROM
                 institutions AS ins
                     LEFT JOIN
@@ -1351,14 +1351,14 @@ WHERE
                 result['studentFemale'] = Object.values(student[0])[1].toString();
             } else {
                 const student = await db.query(`SELECT 
-                SUM(CASE
+                COALESCE(SUM(CASE
                     WHEN st.gender = 'MALE' THEN 1
                     ELSE 0
-                END) AS male,
-                SUM(CASE
+                END),0)AS male,
+                COALESCE(SUM(CASE
                     WHEN st.gender = 'FEMALE' THEN 1
                     ELSE 0
-                END) AS female
+                END),0) AS female
             FROM
                 institutions AS ins
                     LEFT JOIN
