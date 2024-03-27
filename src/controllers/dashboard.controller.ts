@@ -1479,9 +1479,9 @@ WHERE
             const district = newREQQuery.district;
             let result: any = {};
             if (district) {
-                result = await db.query(`select count(*) InvalidInstitutions from institutions where place_id = 0;`, { type: QueryTypes.SELECT })
-            } else {
                 result = {InvalidInstitutions : 0 }
+            } else {
+                result = await db.query(`select count(*) InvalidInstitutions from institutions where place_id = 0;`, { type: QueryTypes.SELECT })
             }
 
             res.status(200).send(dispatcher(res, result, 'done'))
