@@ -1311,7 +1311,7 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
             const summary = await db.query(`SELECT 
             idea_id,
             AVG(overall) AS overall,
-            (AVG(param_1) + AVG(param_2)) / 3 AS Quality,
+            (AVG(param_1) + AVG(param_2)) / 2 AS Quality,
             (AVG(param_3) + AVG(param_4) + AVG(param_5)) / 3 AS Feasibility
         FROM
             evaluator_ratings
