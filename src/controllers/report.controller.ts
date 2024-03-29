@@ -44,6 +44,8 @@ export default class ReportController extends BaseController {
         this.router.get(`${this.path}/institutionReport`, this.getinstitutionReport.bind(this));
         this.router.get(`${this.path}/ideaSubmissionReport`, this.getIdeaSubmissionReport.bind(this));
         this.router.get(`${this.path}/ideaEvaluationReport`, this.getIdeaEvaluationReport.bind(this));
+        this.router.get(`${this.path}/Districtwiseabstract`, this.getDistrictwiseabstract.bind(this));
+
         // super.initializeRoutes();
     }
 
@@ -1667,6 +1669,196 @@ GROUP BY institution_code
         GROUP BY icNew.institution_id`, { type: QueryTypes.SELECT });
             data['summary'] = summary;
             data['ideaCountsSUBDRAFT'] = ideaL1L2evalCount;
+            if (!data) {
+                throw notFound(speeches.DATA_NOT_FOUND)
+            }
+            if (data instanceof Error) {
+                throw data
+            }
+            res.status(200).send(dispatcher(res, data, "success"))
+        } catch (err) {
+            next(err)
+        }
+    }
+    protected async getDistrictwiseabstract(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'REPORT' && res.locals.role !== 'STATE') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            let data: any = {}
+
+            const summary = await db.query(`SELECT 
+            districts.district_name,
+            COALESCE(totalInstitutions, 0) AS totalInstitutions
+        FROM
+            districts
+                LEFT JOIN
+            (SELECT 
+                d.district_name,
+                    COUNT(ins.institution_id) AS totalInstitutions
+            FROM
+                institutions AS ins
+            JOIN places AS p ON ins.place_id = p.place_id
+            JOIN blocks AS b ON p.block_id = b.block_id
+            JOIN districts AS d ON b.district_id = d.district_id
+            WHERE
+                ins.status = 'ACTIVE'
+            GROUP BY d.district_name) AS WiseCount ON districts.district_name = WiseCount.district_name
+        ORDER BY district_name`, { type: QueryTypes.SELECT });
+            const RegInst = await db.query(`SELECT 
+            d.district_name,
+            COUNT(DISTINCT m.institution_id) AS totalRegInstitutions
+        FROM
+            institutions AS ins
+                JOIN
+            places AS p ON ins.place_id = p.place_id
+                JOIN
+            blocks AS b ON p.block_id = b.block_id
+                JOIN
+            districts AS d ON b.district_id = d.district_id
+                LEFT JOIN
+            mentors m ON ins.institution_id = m.institution_id
+        WHERE
+            ins.status = 'ACTIVE'
+        GROUP BY d.district_name`, { type: QueryTypes.SELECT });
+            const RegMentor = await db.query(`SELECT 
+            d.district_name, COUNT(m.mentor_id) AS totalReg
+        FROM
+            institutions AS ins
+                JOIN
+            places AS p ON ins.place_id = p.place_id
+                JOIN
+            blocks AS b ON p.block_id = b.block_id
+                JOIN
+            districts AS d ON b.district_id = d.district_id
+                JOIN
+            states AS s ON d.state_id = s.state_id
+                LEFT JOIN
+            mentors m ON ins.institution_id = m.institution_id
+        WHERE
+            ins.status = 'ACTIVE'
+        GROUP BY d.district_name`, { type: QueryTypes.SELECT });
+            const TeamsCount = await db.query(`SELECT 
+            d.district_name, COUNT(te.team_id) AS totalTeams
+        FROM
+            institutions AS ins
+                JOIN
+            places AS p ON ins.place_id = p.place_id
+                JOIN
+            blocks AS b ON p.block_id = b.block_id
+                JOIN
+            districts AS d ON b.district_id = d.district_id
+                JOIN
+            states AS s ON d.state_id = s.state_id
+                LEFT JOIN
+            mentors m ON ins.institution_id = m.institution_id
+                INNER JOIN
+            teams AS te ON m.mentor_id = te.mentor_id
+        WHERE
+            ins.status = 'ACTIVE' 
+        GROUP BY d.district_name`, { type: QueryTypes.SELECT });
+            const studentCountDetails = await db.query(`SELECT 
+            d.district_name,
+            COUNT(st.student_id) AS totalstudent
+        FROM
+            institutions AS ins
+                JOIN
+            places AS p ON ins.place_id = p.place_id
+                JOIN
+            blocks AS b ON p.block_id = b.block_id
+                JOIN
+            districts AS d ON b.district_id = d.district_id
+                JOIN
+            states AS s ON d.state_id = s.state_id
+                LEFT JOIN
+            mentors m ON ins.institution_id = m.institution_id
+                INNER JOIN
+            teams AS te ON m.mentor_id = te.mentor_id
+                INNER JOIN
+            students AS st ON st.team_id = te.team_id
+        WHERE
+            ins.status = 'ACTIVE'
+        GROUP BY d.district_name;`, { type: QueryTypes.SELECT });
+            const draftCount = await db.query(`SELECT 
+            d.district_name, COUNT(te.team_id) AS draftCount
+        FROM
+            teams AS te
+                JOIN
+            mentors AS m ON te.mentor_id = m.mentor_id
+                JOIN
+            institutions AS ins ON m.institution_id = ins.institution_id
+                JOIN
+            places AS p ON ins.place_id = p.place_id
+                JOIN
+            blocks AS b ON p.block_id = b.block_id
+                JOIN
+            districts AS d ON b.district_id = d.district_id
+                JOIN
+            (SELECT 
+                team_id, status
+            FROM
+                ideas
+            WHERE
+                status = 'DRAFT') AS temp ON te.team_id = temp.team_id
+        WHERE
+            ins.status = 'ACTIVE'
+        GROUP BY d.district_name`, { type: QueryTypes.SELECT });
+            const PFACount = await db.query(`SELECT 
+            d.district_name, COUNT(te.team_id) AS PFACount
+        FROM
+            teams AS te
+                JOIN
+            mentors AS m ON te.mentor_id = m.mentor_id
+                JOIN
+            institutions AS ins ON m.institution_id = ins.institution_id
+                JOIN
+            places AS p ON ins.place_id = p.place_id
+                JOIN
+            blocks AS b ON p.block_id = b.block_id
+                JOIN
+            districts AS d ON b.district_id = d.district_id
+                JOIN
+            (SELECT 
+                team_id, status
+            FROM
+                ideas
+            WHERE
+                status = 'SUBMITTED' and verified_by is null) AS temp ON te.team_id = temp.team_id
+        WHERE
+            ins.status = 'ACTIVE'
+        GROUP BY d.district_name`, { type: QueryTypes.SELECT });
+            const submittedCount = await db.query(`SELECT 
+            d.district_name, COUNT(te.team_id) AS submittedCount
+        FROM
+            teams AS te
+                JOIN
+            mentors AS m ON te.mentor_id = m.mentor_id
+                JOIN
+            institutions AS ins ON m.institution_id = ins.institution_id
+                JOIN
+            places AS p ON ins.place_id = p.place_id
+                JOIN
+            blocks AS b ON p.block_id = b.block_id
+                JOIN
+            districts AS d ON b.district_id = d.district_id
+                JOIN
+            (SELECT 
+                team_id, status
+            FROM
+                ideas
+            WHERE
+                status = 'SUBMITTED' and verified_by is not null) AS temp ON te.team_id = temp.team_id
+        WHERE
+            ins.status = 'ACTIVE'
+        GROUP BY d.district_name`, { type: QueryTypes.SELECT });
+            data['summary'] = summary;
+            data['RegInst'] = RegInst;
+            data['RegMentor'] = RegMentor;
+            data['TeamsCount'] = TeamsCount;
+            data['studentCountDetails'] = studentCountDetails;
+            data['draftCount'] = draftCount;
+            data['PFACount'] = PFACount;
+            data['submittedCount'] = submittedCount;
             if (!data) {
                 throw notFound(speeches.DATA_NOT_FOUND)
             }
