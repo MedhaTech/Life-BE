@@ -401,38 +401,39 @@ export default class MentorController extends BaseController {
     }
     // TODO: update the register flow by adding a flag called reg_statue in mentor tables
     private async register(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        if (!req.body.institution_code || req.body.institution_code === "") return res.status(406).send(dispatcher(res, speeches.ORG_CODE_REQUIRED, 'error', speeches.NOT_ACCEPTABLE, 406));
-        const org = await this.authService.checkOrgDetails(req.body.institution_code);
-        if (!org) {
-            return res.status(406).send(dispatcher(res, org, 'error', speeches.ORG_CODE_NOT_EXISTS, 406));
-        }
-        if (!req.body.role || req.body.role !== 'MENTOR') {
-            return res.status(406).send(dispatcher(res, null, 'error', speeches.USER_ROLE_REQUIRED, 406));
-        }
-        req.body['reg_status'] = '3';
-        req.body['full_name'] = req.body.mentor_name;
-        req.body['financial_year_id'] = 1;
-        if (!req.body.password || req.body.password == null) req.body.password = '';
-        const result: any = await this.authService.mentorRegister(req.body);
-        if (result && result.output && result.output.payload && result.output.payload.message == 'Email') {
-            return res.status(406).send(dispatcher(res, result.data, 'error', speeches.MENTOR_EXISTS, 406));
-        }
-        if (result && result.output && result.output.payload && result.output.payload.message == 'Mobile') {
-            return res.status(406).send(dispatcher(res, result.data, 'error', speeches.MOBILE_EXISTS, 406));
-        }
-        // // const otp = await this.authService.generateOtp();
-        // let otp = await this.authService.triggerOtpMsg(req.body.mobile); //async function but no need to await ...since we yet do not care about the outcome of the sms trigger ....!!this may need to change later on ...!!
-        // otp = String(otp)
-        // let hashString = await this.authService.generateCryptEncryption(otp);
-        // const updatePassword = await this.authService.crudService.update(user,
-        //     { password: await bcrypt.hashSync(hashString, process.env.SALT || baseConfig.SALT) },
-        //     { where: { user_id: result.dataValues.user_id } });
-        // const findMentorDetailsAndUpdateOTP: any = await this.crudService.updateAndFind(mentor,
-        //     { otp: otp },
-        //     { where: { user_id: result.dataValues.user_id } }
-        // );
-        const data = result.dataValues;
-        return res.status(201).send(dispatcher(res, data, 'success', speeches.USER_REGISTERED_SUCCESSFULLY, 201));
+        // if (!req.body.institution_code || req.body.institution_code === "") return res.status(406).send(dispatcher(res, speeches.ORG_CODE_REQUIRED, 'error', speeches.NOT_ACCEPTABLE, 406));
+        // const org = await this.authService.checkOrgDetails(req.body.institution_code);
+        // if (!org) {
+        //     return res.status(406).send(dispatcher(res, org, 'error', speeches.ORG_CODE_NOT_EXISTS, 406));
+        // }
+        // if (!req.body.role || req.body.role !== 'MENTOR') {
+        //     return res.status(406).send(dispatcher(res, null, 'error', speeches.USER_ROLE_REQUIRED, 406));
+        // }
+        // req.body['reg_status'] = '3';
+        // req.body['full_name'] = req.body.mentor_name;
+        // req.body['financial_year_id'] = 1;
+        // if (!req.body.password || req.body.password == null) req.body.password = '';
+        // const result: any = await this.authService.mentorRegister(req.body);
+        // if (result && result.output && result.output.payload && result.output.payload.message == 'Email') {
+        //     return res.status(406).send(dispatcher(res, result.data, 'error', speeches.MENTOR_EXISTS, 406));
+        // }
+        // if (result && result.output && result.output.payload && result.output.payload.message == 'Mobile') {
+        //     return res.status(406).send(dispatcher(res, result.data, 'error', speeches.MOBILE_EXISTS, 406));
+        // }
+        // // // const otp = await this.authService.generateOtp();
+        // // let otp = await this.authService.triggerOtpMsg(req.body.mobile); //async function but no need to await ...since we yet do not care about the outcome of the sms trigger ....!!this may need to change later on ...!!
+        // // otp = String(otp)
+        // // let hashString = await this.authService.generateCryptEncryption(otp);
+        // // const updatePassword = await this.authService.crudService.update(user,
+        // //     { password: await bcrypt.hashSync(hashString, process.env.SALT || baseConfig.SALT) },
+        // //     { where: { user_id: result.dataValues.user_id } });
+        // // const findMentorDetailsAndUpdateOTP: any = await this.crudService.updateAndFind(mentor,
+        // //     { otp: otp },
+        // //     { where: { user_id: result.dataValues.user_id } }
+        // // );
+        // const data = result.dataValues;
+        // return res.status(201).send(dispatcher(res, data, 'success', speeches.USER_REGISTERED_SUCCESSFULLY, 201));
+        res.status(400).send(dispatcher(res, '', 'error', 'Registration has closed', 400));
     }
 
     // TODO: Update flag reg_status on success validate the OTP
