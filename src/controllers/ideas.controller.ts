@@ -717,19 +717,20 @@ export default class ideasController extends BaseController {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
-            const { team_id } = req.body;
-            if (!team_id) {
-                throw unauthorized(speeches.USER_TEAMID_REQUIRED)
-            }
-            req.body['financial_year_id'] = 1;
-            let result: any = await this.crudService.create(ideas, req.body);
-            if (!result) {
-                throw badRequest(speeches.INVALID_DATA);
-            }
-            if (result instanceof Error) {
-                throw result;
-            }
-            res.status(200).send(dispatcher(res, result))
+            // const { team_id } = req.body;
+            // if (!team_id) {
+            //     throw unauthorized(speeches.USER_TEAMID_REQUIRED)
+            // }
+            // req.body['financial_year_id'] = 1;
+            // let result: any = await this.crudService.create(ideas, req.body);
+            // if (!result) {
+            //     throw badRequest(speeches.INVALID_DATA);
+            // }
+            // if (result instanceof Error) {
+            //     throw result;
+            // }
+            // res.status(200).send(dispatcher(res, result))
+            res.status(400).send(dispatcher(res, '', 'error', 'idea initiation is closed', 400));
         } catch (err) {
             next(err)
         }
