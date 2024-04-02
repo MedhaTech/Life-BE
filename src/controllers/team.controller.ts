@@ -321,60 +321,60 @@ export default class TeamController extends BaseController {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
-            const mentor_id = req.body.mentor_id
-            if (mentor_id) {
-                const countvalue = await db.query(`SELECT count(*) as student_count FROM students join teams on students.team_id = teams.team_id  where mentor_id = ${mentor_id};`, { type: QueryTypes.SELECT });
-                const totalValue = Object.values(countvalue[0]).toString()
-                if (JSON.parse(totalValue) > 47) {
-                    throw badRequest(speeches.STUDENT_MAX)
-                }
-            }
-            const { model } = req.params;
-            if (model) {
-                this.model = model;
-            };
-            const current_user = res.locals.user_id;
-            const modelLoaded = await this.loadModel(model);
-            // console.log(req.body.team_name);
-            // req.body.team_name = req.body.team_name.trim();
-            // if (!req.body.team_name) {
-            //     throw badRequest(speeches.TEAM_NAME_REQUIRED);
+            // const mentor_id = req.body.mentor_id
+            // if (mentor_id) {
+            //     const countvalue = await db.query(`SELECT count(*) as student_count FROM students join teams on students.team_id = teams.team_id  where mentor_id = ${mentor_id};`, { type: QueryTypes.SELECT });
+            //     const totalValue = Object.values(countvalue[0]).toString()
+            //     if (JSON.parse(totalValue) > 47) {
+            //         throw badRequest(speeches.STUDENT_MAX)
+            //     }
             // }
-            req.body['financial_year_id'] = 1;
-            const getUserIdFromMentorId = await mentor.findOne({
-                attributes: ["user_id", "created_by"], where: { mentor_id: req.body.mentor_id }
-            });
-            // console.log(getUserIdFromMentorId);
-            if (!getUserIdFromMentorId) throw badRequest(speeches.MENTOR_NOT_EXISTS);
-            if (getUserIdFromMentorId instanceof Error) throw getUserIdFromMentorId;
-            if (current_user !== getUserIdFromMentorId.getDataValue("user_id")) {
-                throw forbidden();
-            };
-            const payload = this.autoFillTrackingColumns(req, res, modelLoaded);
-            // console.log(payload)
-            const teamNameCheck: any = await team.findOne({
-                where: {
-                    mentor_id: payload.mentor_id,
-                    team_name: payload.team_name
-                }
-            });
-            if (teamNameCheck) {
-                throw badRequest('code unique');
-            }
-            // console.log("payload: ", payload)
-            // add check if teamNameCheck is not an error and has data then return and err
-            const data = await this.crudService.create(modelLoaded, payload);
-            if (!data) {
-                return res.status(404).send(dispatcher(res, data, 'error'));
-            }
-            if (!data) {
-                throw badRequest()
-            }
-            if (data instanceof Error) {
-                throw data;
-            }
-            return res.status(201).send(dispatcher(res, data, 'created'));
-
+            // const { model } = req.params;
+            // if (model) {
+            //     this.model = model;
+            // };
+            // const current_user = res.locals.user_id;
+            // const modelLoaded = await this.loadModel(model);
+            // // console.log(req.body.team_name);
+            // // req.body.team_name = req.body.team_name.trim();
+            // // if (!req.body.team_name) {
+            // //     throw badRequest(speeches.TEAM_NAME_REQUIRED);
+            // // }
+            // req.body['financial_year_id'] = 1;
+            // const getUserIdFromMentorId = await mentor.findOne({
+            //     attributes: ["user_id", "created_by"], where: { mentor_id: req.body.mentor_id }
+            // });
+            // // console.log(getUserIdFromMentorId);
+            // if (!getUserIdFromMentorId) throw badRequest(speeches.MENTOR_NOT_EXISTS);
+            // if (getUserIdFromMentorId instanceof Error) throw getUserIdFromMentorId;
+            // if (current_user !== getUserIdFromMentorId.getDataValue("user_id")) {
+            //     throw forbidden();
+            // };
+            // const payload = this.autoFillTrackingColumns(req, res, modelLoaded);
+            // // console.log(payload)
+            // const teamNameCheck: any = await team.findOne({
+            //     where: {
+            //         mentor_id: payload.mentor_id,
+            //         team_name: payload.team_name
+            //     }
+            // });
+            // if (teamNameCheck) {
+            //     throw badRequest('code unique');
+            // }
+            // // console.log("payload: ", payload)
+            // // add check if teamNameCheck is not an error and has data then return and err
+            // const data = await this.crudService.create(modelLoaded, payload);
+            // if (!data) {
+            //     return res.status(404).send(dispatcher(res, data, 'error'));
+            // }
+            // if (!data) {
+            //     throw badRequest()
+            // }
+            // if (data instanceof Error) {
+            //     throw data;
+            // }
+            // return res.status(201).send(dispatcher(res, data, 'created'));
+            res.status(400).send(dispatcher(res, '', 'error', 'Registration has closed', 400));
         } catch (error) {
             next(error);
         }
