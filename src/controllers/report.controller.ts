@@ -1275,6 +1275,9 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
         }
         try {
             let data: any = {}
+            await db.query(`SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`, {
+                type: QueryTypes.RAW,
+            });
             const summary = await db.query(`SELECT 
             user_id,
             full_name,
@@ -1337,6 +1340,9 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
         }
         try {
             let data: any = {}
+            await db.query(`SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`, {
+                type: QueryTypes.RAW,
+            });
             const summary = await db.query(`SELECT 
             user_id, full_name, COUNT(*) as totalEvaluated
         FROM
