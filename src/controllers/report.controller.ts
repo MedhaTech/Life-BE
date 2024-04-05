@@ -45,6 +45,8 @@ export default class ReportController extends BaseController {
         this.router.get(`${this.path}/ideaSubmissionReport`, this.getIdeaSubmissionReport.bind(this));
         this.router.get(`${this.path}/ideaEvaluationReport`, this.getIdeaEvaluationReport.bind(this));
         this.router.get(`${this.path}/Districtwiseabstract`, this.getDistrictwiseabstract.bind(this));
+        this.router.get(`${this.path}/ideaDeatailsTable`, this.getideaDeatailsTable.bind(this));
+        
 
         // super.initializeRoutes();
     }
@@ -780,9 +782,20 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
                 return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
             }
             const district_name = newREQQuery.district_name;
+            const status = newREQQuery.status
             let wherefilter = '';
             if (district_name !== 'All Districts') {
                 wherefilter = `&& district_name= '${district_name}'`;
+            }
+            let wherefilter2 = '';
+            if(status === 'Draft'){
+                wherefilter2=  `i.status = 'DRAFT'`
+            }else if(status === 'Submitted'){
+                wherefilter2=  `i.status = 'SUBMITTED' && i.verified_by IS NOT NULL`
+            }else if(status === 'Pending for Approval'){
+                wherefilter2=  `i.status = 'SUBMITTED' && i.verified_by IS NULL`
+            }else{
+                wherefilter2=  `i.status like '%%'`
             }
             data = await db.query(`SELECT 
             ins.institution_code,
@@ -838,7 +851,7 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
                 LEFT JOIN
             themes_problems AS the ON i.theme_problem_id = the.theme_problem_id
         WHERE
-            i.status = 'SUBMITTED' && i.verified_by IS NOT NULL ${wherefilter}`, { type: QueryTypes.SELECT });
+            ${wherefilter2} ${wherefilter}`, { type: QueryTypes.SELECT });
             if (!data) {
                 throw notFound(speeches.DATA_NOT_FOUND)
             }
@@ -1863,6 +1876,100 @@ GROUP BY institution_code
             data['TeamsCount'] = TeamsCount;
             data['studentCountDetails'] = studentCountDetails;
             data['draftCount'] = draftCount;
+            data['PFACount'] = PFACount;
+            data['submittedCount'] = submittedCount;
+            if (!data) {
+                throw notFound(speeches.DATA_NOT_FOUND)
+            }
+            if (data instanceof Error) {
+                throw data
+            }
+            res.status(200).send(dispatcher(res, data, "success"))
+        } catch (err) {
+            next(err)
+        }
+    }
+    protected async getideaDeatailsTable(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'REPORT' && res.locals.role !== 'STATE') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            let data: any = {}
+
+            const summary = await db.query(`SELECT 
+            districts.district_name,
+            COALESCE(draftCount, 0) AS draftCount
+        FROM
+            districts
+                LEFT JOIN
+            (SELECT 
+                d.district_name, COUNT(te.team_id) AS draftCount
+            FROM
+                teams AS te
+            JOIN mentors AS m ON te.mentor_id = m.mentor_id
+            JOIN institutions AS ins ON m.institution_id = ins.institution_id
+            JOIN places AS p ON ins.place_id = p.place_id
+            JOIN blocks AS b ON p.block_id = b.block_id
+            JOIN districts AS d ON b.district_id = d.district_id
+            JOIN (SELECT 
+                team_id, status
+            FROM
+                ideas
+            WHERE
+                status = 'DRAFT') AS temp ON te.team_id = temp.team_id
+            WHERE
+                ins.status = 'ACTIVE'
+            GROUP BY d.district_name) AS WiseCount ON districts.district_name = WiseCount.district_name
+        ORDER BY district_name`, { type: QueryTypes.SELECT });
+            const PFACount = await db.query(`SELECT 
+            d.district_name, COUNT(te.team_id) AS PFACount
+        FROM
+            teams AS te
+                JOIN
+            mentors AS m ON te.mentor_id = m.mentor_id
+                JOIN
+            institutions AS ins ON m.institution_id = ins.institution_id
+                JOIN
+            places AS p ON ins.place_id = p.place_id
+                JOIN
+            blocks AS b ON p.block_id = b.block_id
+                JOIN
+            districts AS d ON b.district_id = d.district_id
+                JOIN
+            (SELECT 
+                team_id, status
+            FROM
+                ideas
+            WHERE
+                status = 'SUBMITTED' and verified_by is null) AS temp ON te.team_id = temp.team_id
+        WHERE
+            ins.status = 'ACTIVE'
+        GROUP BY d.district_name`, { type: QueryTypes.SELECT });
+            const submittedCount = await db.query(`SELECT 
+            d.district_name, COUNT(te.team_id) AS submittedCount
+        FROM
+            teams AS te
+                JOIN
+            mentors AS m ON te.mentor_id = m.mentor_id
+                JOIN
+            institutions AS ins ON m.institution_id = ins.institution_id
+                JOIN
+            places AS p ON ins.place_id = p.place_id
+                JOIN
+            blocks AS b ON p.block_id = b.block_id
+                JOIN
+            districts AS d ON b.district_id = d.district_id
+                JOIN
+            (SELECT 
+                team_id, status
+            FROM
+                ideas
+            WHERE
+                status = 'SUBMITTED' and verified_by is not null) AS temp ON te.team_id = temp.team_id
+        WHERE
+            ins.status = 'ACTIVE'
+        GROUP BY d.district_name`, { type: QueryTypes.SELECT });
+            data['summary'] = summary;
             data['PFACount'] = PFACount;
             data['submittedCount'] = submittedCount;
             if (!data) {
