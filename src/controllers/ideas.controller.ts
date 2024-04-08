@@ -433,6 +433,9 @@ export default class ideasController extends BaseController {
                             });
                             break;
                         case 'L2':
+                            await db.query(`SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`, {
+                                type: QueryTypes.RAW,
+                            });
                             // cleaning up the repeated code: observation everything is same except the having groupBy clause so separating both of them based the parameter
                             let havingClausePart: any;
                             let groupByClausePart: any;
