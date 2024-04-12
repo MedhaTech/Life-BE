@@ -13,6 +13,8 @@ import { badRequest, notFound, unauthorized } from 'boom';
 import db from "../utils/dbconnection.util"
 import { evaluation_process } from '../models/evaluation_process.model';
 import validationMiddleware from '../middlewares/validation.middleware';
+import bcrypt from 'bcrypt';
+import { baseConfig } from '../configs/base.config';
 
 export default class EvaluatorController extends BaseController {
     model = "evaluator";
@@ -105,6 +107,9 @@ export default class EvaluatorController extends BaseController {
                 throw notFound();
             } else {
                 const evaluatorData = await this.crudService.update(modelLoaded, payload, { where: where });
+                if(req.body.password){
+                    payload['password'] = await bcrypt.hashSync(req.body.password, process.env.SALT || baseConfig.SALT)
+                }
                 const userData = await this.crudService.update(user, payload, { where: { user_id: findEvaluatorDetail.dataValues.user_id } });
                 if (!evaluatorData || !userData) {
                     throw badRequest()
