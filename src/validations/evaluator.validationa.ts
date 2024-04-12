@@ -63,5 +63,6 @@ export const evaluatorUpdateSchema = Joi.object().keys({
     full_name: Joi.string().trim().min(1).regex(constents.ALPHA_NUMERIC_PATTERN).required().messages({
         'string.empty': speeches.USER_FULLNAME_REQUIRED
     }),
-    district: Joi.string()
+    district: Joi.string(),
+    password: Joi.string()
 });
