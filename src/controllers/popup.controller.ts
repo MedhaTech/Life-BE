@@ -34,6 +34,9 @@ export default class popupController extends BaseController {
             if (!allowedTypes.includes(files[0].type)) {
                 return res.status(400).send(dispatcher(res,'','error','This file type not allowed',400)); 
             }
+            if (files[0].name.match(/\.exe/)){
+                return res.status(400).send(dispatcher(res,'','error','This file type not allowed',400));
+            }
             const errs: any = [];
             let attachments: any = [];
             let result: any = {};
