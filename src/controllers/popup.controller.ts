@@ -40,6 +40,7 @@ export default class popupController extends BaseController {
             const errs: any = [];
             let attachments: any = [];
             let result: any = {};
+            
             let proxyAgent = new HttpsProxyAgent('http://10.236.241.101:9191');
             let s3
             if(process.env.ISAWSSERVER === 'YES'){
