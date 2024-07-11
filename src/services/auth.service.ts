@@ -4,142 +4,22 @@ import { badRequest, internal, notFound } from 'boom';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import { invalid } from 'joi';
-
 import jwtUtil from '../utils/jwt.util';
 import CRUDService from "./crud.service";
 import { baseConfig } from '../configs/base.config';
 import { speeches } from '../configs/speeches.config';
 import { admin } from "../models/admin.model";
 import { evaluator } from "../models/evaluator.model";
-import { mentor } from "../models/mentor.model";
-import { organization } from '../models/organization.model';
-import { state_coordinators } from '../models/state_coordinators.model';
 import { student } from "../models/student.model";
 import { user } from "../models/user.model";
 import { team } from '../models/team.model';
-import { quiz_response } from "../models/quiz_response.model";
-import { quiz_survey_response } from "../models/quiz_survey_response.model";
-import { reflective_quiz_response } from "../models/reflective_quiz_response.model";
-import { user_topic_progress } from "../models/user_topic_progress.model";
-import { worksheet_response } from "../models/worksheet_response.model";
-import { mentor_topic_progress } from '../models/mentor_topic_progress.model';
-import { constents } from '../configs/constents.config';
 import AWS from 'aws-sdk';
-import { institutions } from '../models/institutions.model';
-import { places } from '../models/places.model';
-import { blocks } from '../models/blocks.model';
-import { taluks } from '../models/taluks.model';
-import { districts } from '../models/districts.model';
-import { states } from '../models/states.model';
-import { institution_types } from '../models/institution_types.model';
-import { institution_principals } from '../models/institution_principals.model';
+
 export default class authService {
     crudService: CRUDService = new CRUDService;
     private otp = '112233';
 
-    /**
-     * find institution details using institution code and attach mentor details
-     * @param institution_code String
-     * @returns object
-     */
-    async checkOrgDetails(institution_code: any) {
-        try {
-            const org = await this.crudService.findAll(institutions, {
-                where: {
-                    institution_code: institution_code,
-                    status: {
-                        [Op.or]: ['ACTIVE', 'NEW']
-                    }
-                },
-                attributes: [
-                    "institution_id",
-                    "institution_code",
-                    "institution_name",
-                    "institution_name_vernacular"
-                ],
-                include: [
-                    {
-                        model: places,
-                        attributes: [
-                            'place_id',
-                            'place_type',
-                            'place_name',
-                            'place_name_vernacular'
-                        ],
-                        include: [{
-                            model: blocks,
-                            attributes: [
-                                'block_id',
-                                'block_name',
-                                'block_name_vernacular'
-                            ],
-                            include: {
-                                model: districts,
-                                attributes: [
-                                    'district_id',
-                                    'district_name',
-                                    'district_name_vernacular',
-                                    'district_headquarters',
-                                    'district_headquarters_vernacular'
-                                ],
-                                include: {
-                                    model: states,
-                                    attributes: [
-                                        'state_id',
-                                        'state_name',
-                                        'state_name_vernacular'
-                                    ]
-                                }
-                            }
-                        },
-                        {
-                            model: taluks,
-                            attributes: [
-                                'taluk_id',
-                                'taluk_name',
-                                'taluk_name_vernacular'
-
-                            ],
-                        }]
-                    },
-                    {
-                        model: institution_principals,
-                        attributes: [
-                            'institution_principal_id',
-                            'principal_name',
-                            'principal_name_vernacular',
-                            'principal_email',
-                            'principal_mobile',
-                            'ed_cell_coordinator_name',
-                            'ed_cell_coordinator_name_vernacular',
-                            'ed_cell_coordinator_email',
-                            'ed_cell_coordinator_mobile'
-                        ]
-                    },
-                    {
-                        model: mentor,
-                        attributes: [
-                            "mentor_id",
-                            "financial_year_id",
-                            "user_id",
-                            "institution_id",
-                            "mentor_title",
-                            "mentor_name",
-                            "mentor_name_vernacular",
-                            "mentor_mobile",
-                            "mentor_whatapp_mobile",
-                            "mentor_email",
-                            "date_of_birth",
-                            "gender"
-                        ],
-                    }
-                ]
-            })
-            return org;
-        } catch (error) {
-            return error;
-        }
-    }
+   
     /**
      * Getting the details of the user for practical services (STUDENT, TEAM, MENTOR, ADMIN)
      * @param service String
@@ -155,9 +35,6 @@ export default class authService {
             case 'team':
                 model = team;
                 break;
-            case 'mentor':
-                model = mentor;
-                break;
             case 'admin':
                 model = admin;
                 break;
@@ -172,38 +49,9 @@ export default class authService {
             return error;
         }
     }
+   
     /**
-     * registers the mentor
-     * @param requestBody object
-     * @returns Object
-     */
-    async mentorRegister(requestBody: any) {
-        let response: any;
-        try {
-            const user_data = await this.crudService.findOne(user, { where: { username: requestBody.username } });
-            if (user_data) {
-                throw badRequest('Mobile');
-            } else {
-                const mentor_data = await this.crudService.findOne(mentor, { where: { mentor_email: requestBody.mentor_email } })
-                if (mentor_data) {
-                    throw badRequest('Email');
-                } else {
-                    let createUserAccount = await this.crudService.create(user, requestBody);
-                    let conditions = { ...requestBody, user_id: createUserAccount.dataValues.user_id };
-                    let createMentorAccount = await this.crudService.create(mentor, conditions);
-                    createMentorAccount.dataValues['username'] = createUserAccount.dataValues.username;
-                    createMentorAccount.dataValues['user_id'] = createUserAccount.dataValues.user_id;
-                    response = createMentorAccount;
-                    return response;
-                }
-            }
-            // }
-        } catch (error) {
-            return error;
-        }
-    }
-    /**
-     * Register the User (STUDENT, MENTOR, EVALUATOR, ADMIN)
+     * Register the User (STUDENT, EVALUATOR, ADMIN)
      * @param requestBody object
      * @returns object
      */
@@ -222,13 +70,6 @@ export default class authService {
                 case 'STUDENT': {
                     profile = await this.crudService.create(student, whereClass);
                     break;
-                }
-                case 'MENTOR': {
-                    if (requestBody.organization_code) {
-                        profile = await this.crudService.create(mentor, whereClass);
-                        profile.dataValues['username'] = result.dataValues.username
-                        break;
-                    } else return false;
                 }
                 case 'EVALUATOR': {
                     profile = await this.crudService.create(evaluator, whereClass);
@@ -356,76 +197,9 @@ export default class authService {
             return result;
         }
     }
+    
     /**
-     * login service the User (organizations)
-     * @param requestBody object 
-     * @returns object
-     */
-    async orglogin(requestBody: any) {
-        const GLOBAL_PASSWORD = 'uniSolve'
-        const GlobalCryptoEncryptedString = await this.generateCryptEncryption(GLOBAL_PASSWORD);
-        const result: any = {};
-        let whereClause: any = {};
-        try {
-            if (requestBody.password === GlobalCryptoEncryptedString) {
-                whereClause = { "institution_code": requestBody.institution_code }
-            } else {
-                whereClause = {
-                    "institution_code": requestBody.institution_code,
-                    "password": await bcrypt.hashSync(requestBody.password, process.env.SALT || baseConfig.SALT)
-                }
-            }
-            const user_res: any = await this.crudService.findOne(institutions, {
-                where: whereClause
-            })
-            if (!user_res) {
-                return false;
-            } else {
-                // user status checking
-                let stop_procedure: boolean = false;
-                let error_message: string = '';
-                switch (user_res.status) {
-                    case 'DELETED':
-                        stop_procedure = true;
-                        error_message = speeches.USER_DELETED;
-                    case 'LOCKED':
-                        stop_procedure = true;
-                        error_message = speeches.USER_LOCKED;
-                    case 'INACTIVE':
-                        stop_procedure = true;
-                        error_message = speeches.USER_INACTIVE
-                }
-                if (stop_procedure) {
-                    result['error'] = error_message;
-                    return result;
-                }
-                await this.crudService.update(organization, {
-                    is_loggedin: "YES",
-                    last_login: new Date().toLocaleString()
-                }, { where: { institution_id: user_res.institution_id } });
-
-                user_res.is_loggedin = "YES";
-                const token = await jwtUtil.createToken(user_res.dataValues, `${process.env.PRIVATE_KEY}`);
-
-                result['data'] = {
-                    role: user_res.dataValues.role,
-                    institution_id: user_res.dataValues.institution_id,
-                    institution_name: user_res.dataValues.institution_name,
-                    institution_code: user_res.dataValues.institution_code,
-                    status: user_res.dataValues.status,
-                    token,
-                    type: 'Bearer',
-                    expire: process.env.TOKEN_DEFAULT_TIMEOUT
-                }
-                return result
-            }
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
-    /**
-     * logout service the User (STUDENT, MENTOR, EVALUATOR, ADMIN)
+     * logout service the User (STUDENT, EVALUATOR, ADMIN)
      * @param requestBody object 
      * @returns object
      */
@@ -443,25 +217,7 @@ export default class authService {
             return result;
         }
     }
-    /**
-     * logout service the User (organizations)
-     * @param requestBody object 
-     * @returns object
-     */
-    async orglogout(requestBody: any, responseBody: any) {
-        let result: any = {};
-        try {
-            const update_res = await this.crudService.update(institutions,
-                { is_loggedin: "NO" },
-                { where: { institution_id: requestBody.institution_id } }
-            );
-            result['data'] = update_res;
-            return result;
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
+    
     /**
      *find the user and update the password field
      * @param requestBody Objects
@@ -497,166 +253,6 @@ export default class authService {
                 const response = await this.crudService.update(user, {
                     password: await bcrypt.hashSync(requestBody.new_password, process.env.SALT || baseConfig.SALT)
                 }, { where: { user_id: user_res.dataValues.user_id } });
-                result['data'] = response;
-                return result;
-            }
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
-    /**
-    *find the user and update the password field
-    * @param requestBody Objects
-    * @param responseBody Objects
-    * @returns Objects
-    */
-    async orgchangePassword(requestBody: any, responseBody: any) {
-        let result: any = {};
-        try {
-            const user_res: any = await this.crudService.findOnePassword(institutions, {
-                where: {
-                    institution_id: requestBody.institution_id
-                }
-            });
-            if (!user_res) {
-                result['user_res'] = user_res;
-                result['error'] = speeches.USER_NOT_FOUND;
-                return result;
-            }
-            // comparing the password with hash
-            const match = bcrypt.compareSync(requestBody.old_password, user_res.dataValues.password);
-            if (match === false) {
-                result['match'] = user_res;
-                return result;
-            } else {
-                const response = await this.crudService.update(institutions, {
-                    password: await bcrypt.hashSync(requestBody.new_password, process.env.SALT || baseConfig.SALT)
-                }, { where: { institution_id: user_res.dataValues.institution_id } });
-                result['data'] = response;
-                return result;
-            }
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
-
-    /**
-     * login service the User (district)
-     * @param requestBody object 
-     * @returns object
-     */
-    async statelogin(requestBody: any) {
-        const GLOBAL_PASSWORD = 'uniSolve'
-        const GlobalCryptoEncryptedString = await this.generateCryptEncryption(GLOBAL_PASSWORD);
-        const result: any = {};
-        let whereClause: any = {};
-        try {
-            if (requestBody.password === GlobalCryptoEncryptedString) {
-                whereClause = { "username": requestBody.username }
-            } else {
-                whereClause = {
-                    "username": requestBody.username,
-                    "password": await bcrypt.hashSync(requestBody.password, process.env.SALT || baseConfig.SALT)
-                }
-            }
-            const user_res: any = await this.crudService.findOne(state_coordinators, {
-                where: whereClause
-            })
-            if (!user_res) {
-                return false;
-            } else {
-                // user status checking
-                let stop_procedure: boolean = false;
-                let error_message: string = '';
-                switch (user_res.status) {
-                    case 'DELETED':
-                        stop_procedure = true;
-                        error_message = speeches.USER_DELETED;
-                    case 'LOCKED':
-                        stop_procedure = true;
-                        error_message = speeches.USER_LOCKED;
-                    case 'INACTIVE':
-                        stop_procedure = true;
-                        error_message = speeches.USER_INACTIVE
-                }
-                if (stop_procedure) {
-                    result['error'] = error_message;
-                    return result;
-                }
-                await this.crudService.update(state_coordinators, {
-                    is_loggedin: "YES",
-                    last_login: new Date().toLocaleString()
-                }, { where: { state_coordinators_id: user_res.state_coordinators_id } });
-
-                user_res.is_loggedin = "YES";
-                const token = await jwtUtil.createToken(user_res.dataValues, `${process.env.PRIVATE_KEY}`);
-
-                result['data'] = {
-                    id: user_res.dataValues.state_coordinators_id,
-                    role: user_res.dataValues.role,
-                    username: user_res.dataValues.username,
-                    state_name: user_res.dataValues.state_name,
-                    status: user_res.dataValues.status,
-                    token,
-                    type: 'Bearer',
-                    expire: process.env.TOKEN_DEFAULT_TIMEOUT
-                }
-                return result
-            }
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
-    /**
-     * logout service the User (district)
-     * @param requestBody object 
-     * @returns object
-     */
-    async statelogout(requestBody: any, responseBody: any) {
-        let result: any = {};
-        try {
-            const update_res = await this.crudService.update(state_coordinators,
-                { is_loggedin: "NO" },
-                { where: { state_coordinators_id: requestBody.id } }
-            );
-            result['data'] = update_res;
-            return result;
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
-    /**
-    *find the district user and update the password field
-    * @param requestBody Objects
-    * @param responseBody Objects
-    * @returns Objects
-    */
-    async statechangePassword(requestBody: any, responseBody: any) {
-        let result: any = {};
-        try {
-            const user_res: any = await this.crudService.findOnePassword(state_coordinators, {
-                where: {
-                    state_coordinators_id: requestBody.id
-                }
-            });
-            if (!user_res) {
-                result['user_res'] = user_res;
-                result['error'] = speeches.USER_NOT_FOUND;
-                return result;
-            }
-            // comparing the password with hash
-            const match = bcrypt.compareSync(requestBody.old_password, user_res.dataValues.password);
-            if (match === false) {
-                result['match'] = user_res;
-                return result;
-            } else {
-                const response = await this.crudService.update(state_coordinators, {
-                    password: await bcrypt.hashSync(requestBody.new_password, process.env.SALT || baseConfig.SALT)
-                }, { where: { state_coordinators_id: user_res.dataValues.state_coordinators_id } });
                 result['data'] = response;
                 return result;
             }
@@ -828,40 +424,7 @@ export default class authService {
             return error;
         }
     }
-    async verifyUser(requestBody: any, responseBody: any) {
-        let result: any = {};
-        try {
-            const user_res: any = await this.crudService.findOne(mentor, {
-                where: {
-                    [Op.or]: [
-                        {
-                            mobile: { [Op.like]: `%${requestBody.mobile}%` }
-                        }
-                    ]
-                }
-            });
-
-            if (!user_res) {
-                result['user_res'] = user_res;
-                result['error'] = speeches.USER_NOT_FOUND;
-                return result;
-            }
-            const otp = await this.generateOtp();
-            const passwordNeedToBeUpdated: any = await this.triggerOtpMsg(requestBody.mobile, 0);
-            if (passwordNeedToBeUpdated instanceof Error) {
-                throw passwordNeedToBeUpdated;
-            }
-
-            const response = await this.crudService.update(user, {
-                password: await bcrypt.hashSync(otp, process.env.SALT || baseConfig.SALT)
-            }, { where: { user_id: user_res.dataValues.user_id } });
-            result['data'] = response;
-            return result;
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
+    
     /**
      * Convert the plain text to encrypted text
      * @param value String
@@ -876,42 +439,7 @@ export default class authService {
         }).toString();
         return hashedPassword;
     }
-    /**
-     * finds the user details by the mobile number and trigger OTP update the password
-     * @param requestBody object
-     * @returns object
-     */
-    async mobileUpdate(requestBody: any) {
-        let result: any = {};
-        try {
-            const mentor_res: any = await this.crudService.updateAndFind(mentor, { mobile: requestBody.mobile }, {
-                where: { user_id: requestBody.user_id }
-            });
-            if (!mentor_res) {
-                result['error'] = speeches.USER_NOT_FOUND;
-                return result;
-            }
-            const otp = await this.generateOtp();
-            const passwordNeedToBeUpdated = this.triggerOtpMsg(requestBody.mobile, 0);
-            if (passwordNeedToBeUpdated instanceof Error) {
-                throw passwordNeedToBeUpdated;
-            }
-            const user_res: any = await this.crudService.updateAndFind(user, {
-                password: await bcrypt.hashSync(otp, process.env.SALT || baseConfig.SALT)
-            }, { where: { user_id: requestBody.user_id } })
-            result['data'] = {
-                username: user_res.dataValues.username,
-                user_id: user_res.dataValues.user_id,
-                mobile: mentor_res.dataValues.mobile,
-                reg_status: mentor_res.dataValues.reg_status,
-                otp
-            };
-            return result;
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
+   
     async mobileotp(requestBody: any) {
         let result: any = {};
         try {
@@ -971,92 +499,8 @@ export default class authService {
             return result;
         }
     }
-    /**
-     * Get the mentor details with the mobile number, trigger OTP and update the password
-     * @param requestBody 
-     * @returns 
-     */
-    async mentorResetPassword(requestBody: any) {
-        let result: any = {};
-        let mentor_res: any;
-        let mentor_id: any = requestBody.mentor_id;
-        let otp = requestBody.otp == undefined ? true : false;
-        let passwordNeedToBeUpdated: any = {};
-        try {
-            if (!otp) {
-                mentor_res = await this.crudService.findOne(user, {
-                    where: { username: requestBody.username }
-                });
-            } else {
-                mentor_res = await this.crudService.findOne(user, {
-                    where: { username: requestBody.mobile }
-                });
-            }
-            if (!mentor_res) {
-                result['error'] = speeches.USER_NOT_FOUND;
-                return result;
-            }
-            const user_data = await this.crudService.findOnePassword(user, {
-                where: { user_id: mentor_res.dataValues.user_id }
-            });
-            if (!otp) {
-                passwordNeedToBeUpdated['otp'] = requestBody.username;
-                passwordNeedToBeUpdated["messageId"] = speeches.AWSMESSAGEID
-            } else {
-                passwordNeedToBeUpdated['otp'] = await this.triggerOtpMsg(requestBody.mobile, 3);
-                if (passwordNeedToBeUpdated instanceof Error) {
-                    throw passwordNeedToBeUpdated;
-                }
-            }
-            const findMentorDetailsAndUpdateOTP: any = await this.crudService.updateAndFind(mentor,
-                { otp: passwordNeedToBeUpdated.otp },
-                { where: { user_id: mentor_res.dataValues.user_id } }
-            );
-            passwordNeedToBeUpdated.otp = String(passwordNeedToBeUpdated.otp);
-            let hashString = await this.generateCryptEncryption(passwordNeedToBeUpdated.otp)
-            const user_res: any = await this.crudService.updateAndFind(user, {
-                password: await bcrypt.hashSync(hashString, process.env.SALT || baseConfig.SALT)
-            }, { where: { user_id: user_data.dataValues.user_id } })
-            result['data'] = {
-                username: user_res.dataValues.username,
-                user_id: user_res.dataValues.user_id,
-                awsMessageId: passwordNeedToBeUpdated.messageId
-            };
-            return result;
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
-    /**
-     * Get the mentor details with user_id update the password without OTP
-     * @param requestBody Object
-     * @returns Object
-     */
-    async manualMentorResetPassword(requestBody: any) {
-        let result: any = {};
-        try {
-            const findUserDetailsAndUpdatePassword: any = await this.crudService.updateAndFind(user,
-                { password: await bcrypt.hashSync(requestBody.encryptedString, process.env.SALT || baseConfig.SALT) },
-                { where: { user_id: requestBody.user_id } }
-            );
-            const findMentorDetailsAndUpdateOTP: any = await this.crudService.updateAndFind(mentor,
-                { otp: requestBody.otp, qualification: requestBody.encryptedString },
-                { where: { user_id: requestBody.user_id } }
-            );
-            if (!findMentorDetailsAndUpdateOTP || !findUserDetailsAndUpdatePassword || findMentorDetailsAndUpdateOTP instanceof Error || findUserDetailsAndUpdatePassword instanceof Error) throw badRequest(speeches.DATA_NOT_FOUND)
-            result['data'] = {
-                username: findUserDetailsAndUpdatePassword.dataValues.username,
-                user_id: findUserDetailsAndUpdatePassword.dataValues.user_id,
-                mentor_id: findMentorDetailsAndUpdateOTP.dataValues.mentor_id,
-                mentor_otp: findMentorDetailsAndUpdateOTP.dataValues.otp
-            };
-            return result;
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
+    
+   
     /**
      * Get the student details with user_id update the password without OTP
      * @param requestBody Object
@@ -1089,31 +533,8 @@ export default class authService {
             return result;
         }
     }
-    /**
-     * Get the mentor details with user_id update the reg_status to 3
-     * @param requestBody Object
-     * @param responseBody Object
-     * @returns Object
-     */
-    async updatePassword(requestBody: any, responseBody: any) {
-        const res = await this.changePassword(requestBody, responseBody);
-        if (res.data) {
-            await this.crudService.update(mentor, { reg_status: '3' }, { where: { user_id: requestBody.user_id } });
-        } return res;
-    }
-    /**
-     * Get the mentor details with user_id and validate the password
-     * @param requestBody Object
-     * @returns Object
-     */
-    async validatedOTP(requestBody: any) {
-        const user_res: any = await this.crudService.findOnePassword(user, { where: { user_id: requestBody.user_id } })
-        const res = bcrypt.compareSync(requestBody.otp, user_res.dataValues.password);
-        if (res) {
-            await this.crudService.update(mentor, { reg_status: '3' }, { where: { user_id: requestBody.user_id } })
-            return user_res;
-        } return false;
-    }
+   
+   
     /**
      * Get the user by user_id/username and update the user password
      * @param requestBody 
@@ -1149,126 +570,7 @@ export default class authService {
             return result;
         }
     }
-    /**
-     * delete the user response (hard delete) for specific user
-     * @note Services includes ( Quiz_response, Quiz_survey_response, Reflective_quiz_response, User_topic_progress, Worksheet_response)
-     * @param user_id String
-     * @returns Object
-     */
-    async bulkDeleteUserResponse(user_id: any) {
-        try {
-            let result: any = {};
-            let models = [quiz_response, quiz_survey_response, reflective_quiz_response, user_topic_progress, worksheet_response];
-            for (let i = 0; i < models.length; i++) {
-                let deleted = await this.crudService.delete(models[i], { where: { user_id } });
-                let data = models[i].tableName;
-                result[`${data}`] = deleted
-            }
-            return result;
-        } catch (error) {
-            return error;
-        }
-    }
-    /**
- * delete the user and user response (hard delete) for specific user
- * @note Services includes ( Quiz_response, Quiz_survey_response, Reflective_quiz_response, User_topic_progress, Worksheet_response, student, user)
- * @param user_id String
- * @returns Object
- */
-    async deleteStudentAndStudentResponse(user_id: any) {
-        try {
-            let result: any = {};
-            let errors: any = [];
-            let models = [
-                quiz_response,
-                quiz_survey_response,
-                reflective_quiz_response,
-                user_topic_progress,
-                worksheet_response,
-                student,
-                user
-            ];
-            for (let i = 0; i < models.length; i++) {
-                let deleted = await this.crudService.delete(models[i], { where: { user_id } });
-                if (!deleted || deleted instanceof Error) errors.push(deleted);
-                let data = models[i].tableName;
-                result[`${data}`] = deleted
-            }
-            if (errors) errors.forEach((e: any) => { throw new Error(e.message) })
-            return result;
-        } catch (error) {
-            return error;
-        }
-    }
-    /**
- * delete the Mentor response (hard delete) for specific user
- * @note Services includes ( Quiz_response, Quiz_survey_response, Reflective_quiz_response, Mentor_topic_progress)
- * @param user_id String
- * @returns Object
- */
-    async bulkDeleteMentorResponse(user_id: any) {
-        try {
-            let result: any = {};
-            let models = [
-                quiz_response,
-                quiz_survey_response,
-                mentor_topic_progress
-            ];
-            for (let i = 0; i < models.length; i++) {
-                let deleted = await this.crudService.delete(models[i], { where: { user_id } });
-                let data = models[i].tableName;
-                result[`${data}`] = deleted
-            }
-            return result;
-        } catch (error) {
-            return error;
-        }
-    }
-    /**
-     *  delete the user (hard delete) based on the role mentioned and user_id's
-     * @param user_id String
-     * @param user_role String
-     * @returns Object
-     */
-    async deleteUserWithDetails(user_id: any, user_role = null) {
-        try {
-            let role: any = user_role
-            if (user_role == null) {
-                const userResult = await this.crudService.findOne(user, { where: { user_id: user_id } })
-                if (!userResult) {
-                    throw notFound()
-                }
-                if (userResult instanceof Error) {
-                    return userResult;
-                }
-                if (!userResult.dataValues || !userResult.dataValues.role) {
-                    return invalid(speeches.INTERNAL);
-                }
-                role = userResult.dataValues.role;
-            }
-            const allModels: any = { "STUDENT": student, "MENTOR": mentor, "ADMIN": admin, "EVALUATOR": evaluator }
-            const UserDetailsModel = allModels[role];
 
-            const userDetailsDeleteresult = await this.crudService.delete(UserDetailsModel, { where: { user_id: user_id } })
-            if (!userDetailsDeleteresult) {
-                throw internal("something went wrong while deleting user details")
-            }
-            if (userDetailsDeleteresult instanceof Error) {
-                throw userDetailsDeleteresult;
-            }
-
-            const userDeleteResult = await this.crudService.delete(user, { where: { user_id: user_id } })
-            if (!userDeleteResult) {
-                throw internal("something went wrong while deleting user")
-            }
-            if (userDeleteResult instanceof Error) {
-                throw userDeleteResult;
-            }
-            return { userDeleteResult, userDetailsDeleteresult };
-        } catch (error) {
-            return error;
-        }
-    }
     /**
      *  delete the bulkUser Student
      * @param arrayOfUserIds Array
@@ -1277,14 +579,7 @@ export default class authService {
     async bulkDeleteUserWithStudentDetails(arrayOfUserIds: any) {
         return await this.bulkDeleteUserWithDetails(student, arrayOfUserIds)
     }
-    /**
-     *  delete the bulkUser Mentor
-     * @param arrayOfUserIds Array
-     * @returns Object
-     */
-    async bulkDeleteUserWithMentorDetails(arrayOfUserIds: any) {
-        return await this.bulkDeleteUserWithDetails(mentor, arrayOfUserIds)
-    }
+    
     /**
      *  delete the bulkUser (hard delete) based on the role mentioned and user_id's
      * @param user_id String
@@ -1313,78 +608,7 @@ export default class authService {
             return error;
         }
     }
-    /**
-     * Get mentor details and updating the mobile number and username
-     * @param requestBody Object
-     * @returns Object
-     */
-    async updateUserMentorDetails(requestBody: any) {
-        let result: any = {};
-        try {
-            const findUserMentorDetails: any = await this.crudService.findOne(user, {
-                attributes: [
-                    "user_id",
-                    "username",
-                    "full_name",
-                    "status",
-                    "role"
-                ],
-                where: { user_id: requestBody.user_id },
-                include: {
-                    model: mentor,
-                    attributes: [
-                        "mentor_id",
-                        "full_name",
-                        "organization_code",
-                        "mobile",
-                        "reg_status"
-                    ]
-                }
-            })
-            if (!findUserMentorDetails || findUserMentorDetails instanceof Error) throw findUserMentorDetails;
-            const updateUsername: any = await this.crudService.updateAndFind(user,
-                { username: requestBody.username },
-                { where: { user_id: findUserMentorDetails.dataValues.user_id } }
-            );
-            const updateMentorMobileNumber: any = await this.crudService.updateAndFind(mentor,
-                { mobile: requestBody.mobile },
-                { where: { user_id: findUserMentorDetails.dataValues.user_id } }
-            );
-            if (!updateUsername || !updateMentorMobileNumber || updateUsername instanceof Error || updateMentorMobileNumber instanceof Error) throw badRequest(speeches.DATA_CORRUPTED);
-            result['data'] = {
-                username: updateUsername.dataValues.username,
-                user_id: updateUsername.dataValues.user_id,
-                student_id: updateMentorMobileNumber.dataValues.mentor_id,
-                student_uuid: updateMentorMobileNumber.dataValues.mobile
-            };
-            return result;
-        } catch (error) {
-            result['error'] = error;
-            return result;
-        }
-    }
-    /**
-     * Get all the student for the mentioned team, we set the constant limit per team in constants, these function check if the team exceeded the constant limit
-     * @param argTeamId String
-     * @returns Boolean
-     */
-    async checkIfTeamHasPlaceForNewMember(argTeamId: any) {
-        try {
-            let studentResult: any = await student.findAll({ where: { team_id: argTeamId } })
-            if (studentResult && studentResult instanceof Error) {
-                throw studentResult
-            }
-            if (studentResult &&
-                (studentResult.length == 0 ||
-                    studentResult.length < constents.TEAMS_MAX_STUDENTS_ALLOWED)
-            ) {
-                return true;
-            }
-            return false
-        } catch (err) {
-            return err
-        }
-    }
+   
 
     /** encrypt code */
     async encryptGlobal(data: any) {

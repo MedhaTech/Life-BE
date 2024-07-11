@@ -1,10 +1,3 @@
-import { CronJob } from "cron";
-import { challenge_response } from "../models/challenge_response.model";
-import { dashboard_map_stat } from "../models/dashboard_map_stat.model";
-import { mentor } from "../models/mentor.model";
-import { organization } from "../models/organization.model";
-import { team } from "../models/team.model";
-import CRUDService from "../services/crud.service";
 import DashboardService from "../services/dashboard.service";
 import BaseJobs from "./base.job";
 

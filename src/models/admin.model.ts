@@ -2,7 +2,6 @@ import { DataTypes, Model, Attributes, InferAttributes, InferCreationAttributes,
 import bcrypt from 'bcrypt';
 import { constents } from '../configs/constents.config';
 import db from '../utils/dbconnection.util';
-import { notification } from './notification.model';
 import { baseConfig } from '../configs/base.config';
 import { user } from './user.model';
 
@@ -20,15 +19,6 @@ export class admin extends Model<InferAttributes<admin>, InferCreationAttributes
     declare created_at: Date;
     declare updated_by: number;
     declare updated_at: Date;
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models: any) {
-        // define association here
-        admin.hasMany(notification, { sourceKey: 'notification_id', as: 'notifications' });
-    }
 }
 
 admin.init(

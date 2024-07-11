@@ -43,11 +43,8 @@ export default class CRUDController implements IController {
         this.router.get(`${this.path}/:model`, this.getData.bind(this));
         this.router.get(`${this.path}/:model/:id`, this.getData.bind(this));
         this.router.post(`${this.path}/:model`, this.createData.bind(this));
-        this.router.post(`${this.path}/:model/withfile`, this.createDataWithFile.bind(this));
         this.router.put(`${this.path}/:model/:id`, this.updateData.bind(this));
-        this.router.put(`${this.path}/:model/:id/withfile`, this.updateDataWithFile.bind(this));
         this.router.delete(`${this.path}/:model/:id`, this.deleteData.bind(this));
-        this.router.post(`${this.path}/:model/bulkUpload`, this.bulkUpload.bind(this));
     }
 
     protected async loadModel(model: string): Promise<Response | void | any> {
@@ -283,49 +280,7 @@ export default class CRUDController implements IController {
         }
     }
 
-    protected async createDataWithFile(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        try {
-            const { model } = req.params;
-            if (model) {
-                this.model = model;
-            };
-            const rawFiles: any = req.files;
-            const files: any = Object.values(rawFiles);
-            const reqData: any = req.body;
-            const errs: any = [];
-            for (const file_name of Object.keys(files)) {
-                const file = files[file_name];
-                const filename = file.path.split(path.sep).pop();
-                const targetPath = path.join(process.cwd(), 'resources', 'static', 'uploads', 'images', filename);
-                await fs.rename(file.path, targetPath, async (err) => {
-                    if (err) {
-                        errs.push(`Error uploading file: ${file.originalFilename}`);
-                    } else {
-                        reqData[file.fieldName] = `/posters/${filename}`;
-                    }
-                });
-            }
-            if (errs.length) {
-                return res.status(406).send(dispatcher(res,errs, 'error', speeches.NOT_ACCEPTABLE, 406));
-            }
-            const modelLoaded = await this.loadModel(model);
-            const payload = this.autoFillTrackingColumns(req, res, modelLoaded, reqData)
-            const data = await this.crudService.create(modelLoaded, payload);
-
-            // if (!data) {
-            //     return res.status(404).send(dispatcher(res,data, 'error'));
-            // }
-            if(!data ){
-                throw badRequest()
-            }
-            if (data instanceof Error) {
-                throw data;
-            }
-            return res.status(201).send(dispatcher(res,data, 'created'));
-        } catch (error) {
-            next(error);
-        }
-    }
+    
 
     protected async updateData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
         try {
@@ -355,53 +310,7 @@ export default class CRUDController implements IController {
         }
     }
 
-    protected async updateDataWithFile(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        try {
-            const { model, id } = req.params;
-            if (model) {
-                this.model = model;
-            };
-            const user_id = res.locals.user_id
-            const where: any = {};
-            const newParamId = await this.authService.decryptGlobal(req.params.id);
-            where[`${this.model}_id`] = newParamId;
-            const rawFiles: any = req.files;
-            const files: any = Object.values(rawFiles);
-            const file_key: any = Object.keys(rawFiles);
-            const reqData: any = req.body;
-            const errs: any = [];
-            for (const file_name of Object.keys(files)) {
-                const file = files[file_name];
-                const filename = file.path.split(path.sep).pop();
-                const targetPath = path.join(process.cwd(), 'resources', 'static', 'uploads', 'images', filename);
-                await fs.rename(file.path, targetPath, async (err) => {
-                    if (err) {
-                        errs.push(`Error uploading file: ${file.originalFilename}`);
-                    } else {
-                        reqData[file.fieldName] = `/posters/${filename}`;
-                    }
-                });
-            }
-            if (errs.length) {
-                return res.status(406).send(dispatcher(res,errs, 'error', speeches.NOT_ACCEPTABLE, 406));
-            }
-            const modelLoaded = await this.loadModel(model);
-            const payload = this.autoFillTrackingColumns(req, res, modelLoaded, reqData)
-            const data = await this.crudService.update(modelLoaded, payload, { where: where });
-            // if (!data) {
-            //     return res.status(404).send(dispatcher(res,data, 'error'));
-            // }
-            if(!data){
-                throw badRequest()
-            }
-            if (data instanceof Error) {
-                throw data;
-            }
-            return res.status(200).send(dispatcher(res,data, 'updated'));
-        } catch (error) {
-            next(error);
-        }
-    }
+    
 
     protected async deleteData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
         try {
@@ -428,57 +337,7 @@ export default class CRUDController implements IController {
         }
     }
 
-    protected async bulkUpload(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        const { model } = req.params;
-        if (model) {
-            this.model = model;
-        };
-        //@ts-ignore
-        let file = req.files.data;
-        let Errors: any = [];
-        let bulkData: any = [];
-        let counter: number = 0;
-        let existedEntities: number = 0;
-        let dataLength: number;
-
-        if (file === undefined) return res.status(400).send(dispatcher(res,null, 'error', speeches.FILE_REQUIRED, 400));
-        if (file.type !== 'text/csv') return res.status(400).send(dispatcher(res,null, 'error', speeches.FILE_REQUIRED, 400));
-        const modelLoaded = await this.loadModel(model);
-        const stream = fs.createReadStream(file.path).pipe(csv.parse({ headers: true }));
-        stream.on('error', (error) => res.status(400).send(dispatcher(res,error, 'error', speeches.CSV_SEND_ERROR, 400)));
-        stream.on('data', async (data: any) => {
-            dataLength = Object.entries(data).length;
-            for (let i = 0; i < dataLength; i++) {
-                if (Object.entries(data)[i][1] === '') {
-                    Errors.push(badRequest('missing fields', data));
-                    return;
-                }
-            } bulkData.push(data);
-        })
-        stream.on('end', async () => {
-            if (Errors.length > 0) next(badRequest(Errors.message));
-            for (let data = 0; data < bulkData.length; data++) {
-                const payload = this.autoFillTrackingColumns(req, res, modelLoaded, bulkData[data]);
-                const match = await this.crudService.findOne(modelLoaded, { where: bulkData[data] });
-                if (match) {
-                    existedEntities++;
-                } else {
-                    counter++;
-                    bulkData[data] = payload;
-                }
-            }
-            if (counter > 0) {
-                await this.crudService.bulkCreate(modelLoaded, bulkData)
-                    .then((result) => {
-                        return res.send(dispatcher(res,{ data: result, createdEntities: counter, existedEntities }, 'success', speeches.CREATED_FILE, 200));
-                    }).catch((error: any) => {
-                        return res.status(500).send(dispatcher(res,error, 'error', speeches.CSV_SEND_INTERNAL_ERROR, 500));
-                    })
-            } else if (existedEntities > 0) {
-                return res.status(400).send(dispatcher(res,{ createdEntities: counter, existedEntities }, 'error', speeches.CSV_DATA_EXIST, 400));
-            }
-        });
-    }
+    
 
     protected getWhereClauseStatsPart(req:Request):any{
         const paramStatus:any = req.query?.status ? req.query.status : false
