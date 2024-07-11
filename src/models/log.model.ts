@@ -2,18 +2,9 @@ import { DataTypes, Model } from 'sequelize';
 import { constents } from '../configs/constents.config';
 import ILogAttributes from '../interfaces/log.model.interface';
 import db from '../utils/dbconnection.util';
-import {  course_module } from './course_module.model';
 
 export class log extends Model<ILogAttributes> {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models: any) {
-        // define association here
-        log.hasMany(course_module,{foreignKey: 'course_id', as: 'courseModules'});
-    }
+    
 }
 
 
