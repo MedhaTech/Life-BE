@@ -17,12 +17,9 @@ import { options } from "./docs/options";
 import * as errorHandler from "./middlewares/errorHandler.middleware";
 import { constents } from "./configs/constents.config";
 import { CronManager } from "./jobs/cronManager";
-import DashboardMapStatsJob from "./jobs/dashboardMapStats.jobs";
-import InstDReportJob from "./jobs/InstDReport.jobs";
-import StudentDReportJob from "./jobs/studentDReport.jobs";
+//import DashboardMapStatsJob from "./jobs/dashboardMapStats.jobs";
 import { translationMiddleware } from "./middlewares/translation.middleware";
 import TranslationService from "./services/translation.service";
-import IdeaReportJob from "./jobs/ideaReport.jobs";
 
 /**
  * Application Class is responsible to call internal validation middleware and establish the database connection.
@@ -96,10 +93,7 @@ export default class App {
      */
     private initializeJobs(): void {
         const cronManager = CronManager.getInstance()
-        cronManager.addJob(new DashboardMapStatsJob())
-        // cronManager.addJob(new InstDReportJob())
-        // cronManager.addJob(new StudentDReportJob())
-        // cronManager.addJob(new IdeaReportJob())
+        //cronManager.addJob(new DashboardMapStatsJob())
         cronManager.startAll();
     }
 

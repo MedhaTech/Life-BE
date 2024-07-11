@@ -2,12 +2,10 @@ import { DataTypes, Model } from 'sequelize';
 import db from '../utils/dbconnection.util';
 import { teamAttributes } from '../interfaces/model.interface';
 import { constents } from '../configs/constents.config';
-import { mentor } from './mentor.model';
 import { student } from './student.model';
-import { challenge_response } from './challenge_response.model';
 
 export class team extends Model<teamAttributes> {
-    static modelTableName="teams";
+    static modelTableName = "teams";
 }
 
 team.init(
@@ -17,17 +15,22 @@ team.init(
             autoIncrement: true,
             primaryKey: true
         },
-        financial_year_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
         team_name: {
             type: DataTypes.STRING,
             allowNull: false
         },
-        mentor_id: {
+        student_id: {
             type: DataTypes.INTEGER,
             allowNull: true
+        },
+        student_name: {
+            type: DataTypes.STRING
+        },
+        student_email: {
+            type: DataTypes.STRING
+        },
+        student_mobile: {
+            type: DataTypes.INTEGER
         },
         status: {
             type: DataTypes.ENUM(...Object.values(constents.common_status_flags.list)),
@@ -64,9 +67,5 @@ team.init(
     }
 );
 
-student.belongsTo(team, { foreignKey: 'team_id', constraints: false });
-team.hasMany(student, { foreignKey: 'team_id', constraints: false });
-team.belongsTo(mentor, { foreignKey: 'mentor_id', constraints: false });
-mentor.hasOne(team, { foreignKey: 'mentor_id', constraints: false });
-challenge_response.belongsTo(team, { foreignKey: 'team_id', constraints: false });
-team.hasMany(challenge_response, { foreignKey: 'team_id', constraints: false });
+student.belongsTo(team, { foreignKey: 'student_id', constraints: false });
+team.hasMany(student, { foreignKey: 'student_id', constraints: false });

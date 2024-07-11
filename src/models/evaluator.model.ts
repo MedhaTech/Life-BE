@@ -2,7 +2,6 @@ import { DataTypes, Model, Attributes, InferAttributes, InferCreationAttributes,
 import bcrypt from 'bcrypt';
 import { constents } from '../configs/constents.config';
 import db from '../utils/dbconnection.util';
-import { notification } from './notification.model';
 import { baseConfig } from '../configs/base.config';
 import { user } from './user.model';
 
@@ -66,10 +65,6 @@ export class evaluator extends Model<InferAttributes<evaluator>, InferCreationAt
             onUpdate: new Date().toLocaleString()
         }
     };
-    static associate(models: any) {
-        // define association here
-        evaluator.hasMany(notification, { sourceKey: 'notification_id', as: 'notifications' });
-    }
 }
 
 evaluator.init(

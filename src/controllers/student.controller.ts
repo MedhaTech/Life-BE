@@ -1,39 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import { customAlphabet } from 'nanoid';
-
 import { speeches } from '../configs/speeches.config';
 import dispatcher from '../utils/dispatch.util';
-import { studentSchema, studentLoginSchema, studentUpdateSchema, studentChangePasswordSchema, studentResetPasswordSchema, studentRegSchema } from '../validations/student.validationa';
+import { studentSchema, studentLoginSchema, studentUpdateSchema, studentChangePasswordSchema, studentResetPasswordSchema} from '../validations/student.validationa';
 import bcrypt from 'bcrypt';
 import authService from '../services/auth.service';
 import BaseController from './base.controller';
 import ValidationsHolder from '../validations/validationHolder';
 import validationMiddleware from '../middlewares/validation.middleware';
-import { constents } from '../configs/constents.config';
-import CryptoJS from 'crypto-js';
-import { Op, QueryTypes } from 'sequelize';
 import { user } from '../models/user.model';
-import { team } from '../models/team.model';
 import { baseConfig } from '../configs/base.config';
 import { student } from '../models/student.model';
-import StudentService from '../services/students.service';
-import { badge } from '../models/badge.model';
-import { mentor } from '../models/mentor.model';
-import { organization } from '../models/organization.model';
 import { badRequest, internal, notFound } from 'boom';
-import { find } from 'lodash';
-import { string } from 'joi';
-import db from "../utils/dbconnection.util"
-import { institutions } from '../models/institutions.model';
-import { places } from '../models/places.model';
-import { blocks } from '../models/blocks.model';
-import { taluks } from '../models/taluks.model';
-import { districts } from '../models/districts.model';
-import { states } from '../models/states.model';
-import { institutional_courses } from '../models/institutional_courses.model';
-import { institution_types } from '../models/institution_types.model';
-import { streams } from '../models/streams.model';
-import { programs } from '../models/programs.model';
+
 
 export default class StudentController extends BaseController {
     model = "student";
@@ -48,284 +27,14 @@ export default class StudentController extends BaseController {
         this.validations = new ValidationsHolder(studentSchema, studentUpdateSchema);
     }
     protected initializeRoutes(): void {
-        //example route to add
-        //this.router.get(`${this.path}/`, this.getData);
-        this.router.post(`${this.path}/register`, validationMiddleware(studentRegSchema), this.register.bind(this));
-        this.router.post(`${this.path}/addStudent`, this.register.bind(this));
-        this.router.post(`${this.path}/bulkCreateStudent`, this.bulkCreateStudent.bind(this));
+        this.router.post(`${this.path}/register`, validationMiddleware(studentSchema), this.register.bind(this));
         this.router.post(`${this.path}/login`, validationMiddleware(studentLoginSchema), this.login.bind(this));
         this.router.get(`${this.path}/logout`, this.logout.bind(this));
         this.router.put(`${this.path}/changePassword`, validationMiddleware(studentChangePasswordSchema), this.changePassword.bind(this));
-        // this.router.put(`${this.path}/updatePassword`, validationMiddleware(studentChangePasswordSchema), this.updatePassword.bind(this));
-        this.router.put(`${this.path}/resetPassword`, validationMiddleware(studentResetPasswordSchema), this.resetPassword.bind(this));
         this.router.get(`${this.path}/:student_user_id/studentCertificate`, this.studentCertificate.bind(this));
-        //this.router.post(`${this.path}/:student_user_id/badges`, this.addBadgeToStudent.bind(this));
-        this.router.get(`${this.path}/:student_user_id/badges`, this.getStudentBadges.bind(this));
-        this.router.get(`${this.path}/passwordUpdate`, this.studentPasswordUpdate.bind(this));
-        this.router.post(`${this.path}/stuIdeaSubmissionEmail`, this.stuIdeaSubmissionEmail.bind(this));
         super.initializeRoutes();
     }
-    protected async getData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT' && res.locals.role !== 'MENTOR' && res.locals.role !== 'STATE' && res.locals.role !== 'INSTITUTION') {
-            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
-        }
-        try {
-            let newREQQuery: any = {}
-            if (req.query.Data) {
-                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
-                newREQQuery = JSON.parse(newQuery);
-            } else if (Object.keys(req.query).length !== 0) {
-                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
-            }
-            let data: any;
-            const { model, id } = req.params;
-            const paramStatus: any = newREQQuery.status;
-            if (model) {
-                this.model = model;
-            };
-            // pagination
-            const { page, size, adult } = newREQQuery;
-            let condition = adult ? { UUID: null } : { UUID: { [Op.like]: `%%` } };
-            const { limit, offset } = this.getPagination(page, size);
-            const modelClass = await this.loadModel(model).catch(error => {
-                next(error)
-            });
-            const where: any = {};
-            let whereClauseStatusPart: any = {}
-            let boolStatusWhereClauseRequired = false;
-            if (paramStatus && (paramStatus in constents.common_status_flags.list)) {
-                if (paramStatus === 'ALL') {
-                    whereClauseStatusPart = {};
-                    boolStatusWhereClauseRequired = false;
-                } else {
-                    whereClauseStatusPart = { "status": paramStatus };
-                    boolStatusWhereClauseRequired = true;
-                }
-            } else {
-                whereClauseStatusPart = { "status": "ACTIVE" };
-                boolStatusWhereClauseRequired = true;
-            };
-            let district_name: any = newREQQuery.district_name;
-            if (id) {
-                const newParamId = await this.authService.decryptGlobal(req.params.id);
-                where[`${this.model}_id`] = newParamId;
-                data = await this.crudService.findOne(modelClass, {
-                    attributes: [
-                        'student_full_name',
-                        'date_of_birth',
-                        'mobile',
-                        'email',
-                        'Gender',
-                        'Age',
-                        'year_of_study'
-                    ],
-                    where: {
-                        [Op.and]: [
-                            whereClauseStatusPart,
-                            where,
-                        ],
-                    },
-                    include: [
-                        {
-                            model: team,
-                            attributes: [
-                                'team_id',
-                                'team_name',
-                                'mentor_id'
-                            ],
-                            include: {
-                                model: mentor,
-                                attributes: [
-                                    'mentor_name',
-                                    'gender',
-                                    'mentor_mobile'
-                                ],
-                                include:
-                                {
-                                    model: institutions,
-                                    attributes: [
-                                        "institution_id",
-                                        "institution_code",
-                                        "institution_name",
-                                        "institution_name_vernacular"
-                                    ],
-                                    include: [
-                                        {
-                                            model: places,
-                                            attributes: [
-                                                'place_id',
-                                                'place_type',
-                                                'place_name',
-                                                'place_name_vernacular'
-                                            ],
-                                            include: [{
-                                                model: blocks,
-                                                attributes: [
-                                                    'block_id',
-                                                    'block_name',
-                                                    'block_name_vernacular'
-                                                ],
-                                                include: {
-                                                    model: districts,
-                                                    attributes: [
-                                                        'district_id',
-                                                        'district_name',
-                                                        'district_name_vernacular',
-                                                        'district_headquarters',
-                                                        'district_headquarters_vernacular'
-                                                    ],
-                                                    include: {
-                                                        model: states,
-                                                        attributes: [
-                                                            'state_id',
-                                                            'state_name',
-                                                            'state_name_vernacular'
-                                                        ]
-                                                    }
-
-                                                }
-                                            },
-                                            {
-                                                model: taluks,
-                                                attributes: [
-                                                    'taluk_id',
-                                                    'taluk_name',
-                                                    'taluk_name_vernacular'
-
-                                                ],
-                                            }]
-                                        }
-                                    ]
-                                }
-
-                            },
-                        },
-                        {
-                            model: institutional_courses,
-                            attributes: ['institution_course_id', 'special_category'],
-                            include: [
-                                {
-                                    model: institution_types,
-                                    attributes: ['institution_type']
-                                },
-                                {
-                                    model: streams,
-                                    attributes: ['stream_name']
-                                },
-                                {
-                                    model: programs,
-                                    attributes: ['program_name', 'no_of_years', 'program_type'
-                                    ]
-                                }
-
-                            ]
-                        }
-                    ],
-                });
-            } else {
-                try {
-                    let whereText
-                    if (district_name !== 'All Districts') {
-                        whereText = `and d.district_name = '${district_name}'`
-                    } else {
-                        whereText = ''
-                    }
-                    const responseOfFindAndCountAll = await db.query(`SELECT 
-                    student_id,
-                    institution_course_id,
-                    (SELECT 
-                            CONCAT(it.institution_type,
-                                        '-',
-                                        st.stream_name,
-                                        '-',
-                                        p.program_name,
-                                        '-',
-                                        p.program_type,
-                                        '-',
-                                        p.no_of_years,
-                                        ' Years') AS output
-                        FROM
-                            institutional_courses AS inct
-                                JOIN
-                            institution_types AS it ON inct.institution_type_id = it.institution_type_id
-                                JOIN
-                            streams AS st ON inct.stream_id = st.stream_id
-                                JOIN
-                            programs AS p ON inct.program_id = p.program_id
-                        WHERE
-                            inct.institution_course_id = st.institution_course_id) AS course_name,
-                    year_of_study,
-                    st.financial_year_id,
-                    st.user_id,
-                    st.team_id,
-                    team_name,
-                    student_full_name,
-                    st.date_of_birth,
-                    mobile,
-                    email,
-                    st.Gender,
-                    Age,
-                    mentor_name,
-                    ins.institution_id,
-                    institution_code,
-                    institution_name,
-                    place_type,
-                    place_name,
-                    taluk_name,
-                    block_name,
-                    district_name,
-                    district_headquarters,
-                    state_name
-                FROM
-                    students AS st
-                        LEFT JOIN
-                    teams AS te ON st.team_id = te.team_id
-                        LEFT JOIN
-                    mentors AS m ON te.mentor_id = m.mentor_id
-                        LEFT JOIN
-                    institutions AS ins ON m.institution_id = ins.institution_id
-                        LEFT JOIN
-                    places AS p ON ins.place_id = p.place_id
-                        LEFT JOIN
-                    blocks AS b ON p.block_id = b.block_id
-                        LEFT JOIN
-                    districts AS d ON b.district_id = d.district_id
-                        LEFT JOIN
-                    taluks AS t ON p.taluk_id = t.taluk_id
-                        LEFT JOIN
-                    states AS s ON d.state_id = s.state_id
-                WHERE
-                    ins.status = 'ACTIVE' ${whereText} ;`, { type: QueryTypes.SELECT })
-                    data = responseOfFindAndCountAll;
-
-                } catch (error: any) {
-                    return res.status(500).send(dispatcher(res, data, 'error'))
-                }
-
-            }
-            // if (!data) {
-            //     return res.status(404).send(dispatcher(res,data, 'error'));
-            // }
-            if (!data || data instanceof Error) {
-                if (data != null) {
-                    throw notFound(data.message)
-                } else {
-                    throw notFound()
-                }
-                res.status(200).send(dispatcher(res, null, "error", speeches.DATA_NOT_FOUND));
-                // if(data!=null){
-                //     throw 
-                (data.message)
-                // }else{
-                //     throw notFound()
-                // }
-            }
-
-            return res.status(200).send(dispatcher(res, data, 'success'));
-        } catch (error) {
-            next(error);
-        }
-    }
+    
     protected async updateData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
         if (res.locals.role !== 'ADMIN' && res.locals.role !== 'MENTOR' && res.locals.role !== 'STATE' && res.locals.role !== 'INSTITUTION') {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
@@ -356,9 +65,9 @@ export default class StudentController extends BaseController {
             const modelLoaded = await this.loadModel(model);
             req.body['full_name'] = req.body.student_full_name;
             const payload = this.autoFillTrackingColumns(req, res, modelLoaded);
-            if (req.body.username) {
-                const cryptoEncryptedString = await this.authService.generateCryptEncryption(req.body.username);
-                const username = req.body.username;
+            if (req.body.email) {
+                const cryptoEncryptedString = await this.authService.generateCryptEncryption(req.body.email);
+                const username = req.body.email;
                 const studentDetails = await this.crudService.findOne(user, { where: { username: username } });
                 // console.log(studentDetails);
 
@@ -402,117 +111,25 @@ export default class StudentController extends BaseController {
             next(error);
         }
     }
-    protected async deleteData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'MENTOR') {
-            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
-        }
-        try {
-            const { model, id } = req.params;
-            if (model) this.model = model;
-            const where: any = {};
-            const newParamId = await this.authService.decryptGlobal(req.params.id);
-            where[`${this.model}_id`] = newParamId;
-            const getUserIdFromStudentData = await this.crudService.findOne(student, { where: { student_id: where.student_id } });
-            if (!getUserIdFromStudentData) throw notFound(speeches.USER_NOT_FOUND);
-            if (getUserIdFromStudentData instanceof Error) throw getUserIdFromStudentData;
-            const user_id = getUserIdFromStudentData.dataValues.user_id;
-            const deleteUserStudentAndRemoveAllResponses = await this.authService.deleteStudentAndStudentResponse(user_id);
-            const data = deleteUserStudentAndRemoveAllResponses
-            return res.status(200).send(dispatcher(res, data, 'deleted'));
-        } catch (error) {
-            next(error);
-        }
-    }
     private async register(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
         try {
-            // const randomGeneratedSixDigitID = this.nanoid();
-            // const { team_id, username, mentor_id } = req.body;
-            // if (mentor_id) {
-            //     const countvalue = await db.query(`SELECT count(*) as student_count FROM students join teams on students.team_id = teams.team_id  where mentor_id = ${mentor_id};`, { type: QueryTypes.SELECT });
-            //     const totalValue = Object.values(countvalue[0]).toString()
-            //     if (JSON.parse(totalValue) > 50) {
-            //         throw badRequest(speeches.STUDENT_MAX)
-            //     }
-            // }
-            // const cryptoEncryptedString = await this.authService.generateCryptEncryption(username);
-            // req.body['full_name'] = req.body.student_full_name;
-            // req.body['financial_year_id'] = 1;
-            // if (!req.body.role || req.body.role !== 'STUDENT') return res.status(406).send(dispatcher(res, null, 'error', speeches.USER_ROLE_REQUIRED, 406));
-            // if (!req.body.team_id) return res.status(406).send(dispatcher(res, null, 'error', speeches.USER_TEAMID_REQUIRED, 406));
-            // if (team_id) {
-            //     const teamCanAddMember = await this.authService.checkIfTeamHasPlaceForNewMember(team_id)
-            //     if (!teamCanAddMember) {
-            //         throw badRequest(speeches.TEAM_MAX_MEMBES_EXCEEDED)
-            //     }
-            //     if (teamCanAddMember instanceof Error) {
-            //         throw teamCanAddMember;
-            //     }
-            // }
-            // const teamDetails = await this.authService.crudService.findOne(team, { where: { team_id } });
-            // if (!teamDetails) return res.status(406).send(dispatcher(res, null, 'error', speeches.TEAM_NOT_FOUND, 406));
+            if (!req.body.role || req.body.role !== 'STUDENT') return res.status(406).send(dispatcher(res, null, 'error', speeches.USER_ROLE_REQUIRED, 406));
+            
+            const cryptoEncryptedString = await this.authService.generateCryptEncryption(req.body.passwprd);
+            if (!req.body.password || req.body.password === "") req.body.password = cryptoEncryptedString;
 
-            // if (!req.body.password || req.body.password === "") req.body.password = cryptoEncryptedString;
-            // const payload = this.autoFillTrackingColumns(req, res, student)
-            // const result = await this.authService.register(payload);
-            // if (result.user_res) return res.status(406).send(dispatcher(res, result.user_res.dataValues, 'error', speeches.STUDENT_EXISTS, 406));
-            // return res.status(201).send(dispatcher(res, result.profile.dataValues, 'success', speeches.USER_REGISTERED_SUCCESSFULLY, 201));
-            res.status(400).send(dispatcher(res, '', 'error', 'Registration has closed', 400));
+            req.body['full_name'] = req.body.student_full_name;
+            req.body['username'] = req.body.email;
+
+            const payload = this.autoFillTrackingColumns(req, res, student)
+            const result = await this.authService.register(payload);
+            if (result.user_res) return res.status(406).send(dispatcher(res, result.user_res.dataValues, 'error', speeches.STUDENT_EXISTS, 406));
+            return res.status(201).send(dispatcher(res, result.profile.dataValues, 'success', speeches.USER_REGISTERED_SUCCESSFULLY, 201));
         } catch (err) {
             next(err)
         }
     }
-    private async bulkCreateStudent(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        try {
-            // if (req.body.length >= constents.TEAMS_MAX_STUDENTS_ALLOWED) {
-            //     throw badRequest(speeches.TEAM_MAX_MEMBES_EXCEEDED);
-            // }
-            // for (let student in req.body) {
-            //     if (!req.body[student].team_id) throw notFound(speeches.USER_TEAMID_REQUIRED);
-            //     const team_id = req.body[student].team_id
-            //     const mentor_id = req.body[student].mentor_id
-            //     if (mentor_id) {
-            //         const countvalue = await db.query(`SELECT count(*) as student_count FROM students join teams on students.team_id = teams.team_id  where mentor_id = ${mentor_id};`, { type: QueryTypes.SELECT });
-            //         const totalValue = Object.values(countvalue[0]).toString()
-            //         if (JSON.parse(totalValue) > 47) {
-            //             throw badRequest(speeches.STUDENT_MAX)
-            //         }
-            //     }
-            //     if (team_id) {
-            //         const teamCanAddMember = await this.authService.checkIfTeamHasPlaceForNewMember(team_id)
-            //         if (!teamCanAddMember) {
-            //             throw badRequest(speeches.TEAM_MAX_MEMBES_EXCEEDED)
-            //         }
-            //         if (teamCanAddMember instanceof Error) {
-            //             throw teamCanAddMember;
-            //         }
-            //     }
-            // }
-            // let cryptoEncryptedString: any;
-            // const teamName = await this.authService.crudService.findOne(team, {
-            //     attributes: ["team_name"], where: { team_id: req.body[0].team_id }
-            // });
-            // if (!teamName) throw notFound(speeches.TEAM_NOT_FOUND, 406);
-            // if (teamName instanceof Error) throw teamName;
-            // for (let student in req.body) {
-            //     cryptoEncryptedString = await this.authService.generateCryptEncryption(req.body[student].username);
-            //     req.body[student].student_full_name = req.body[student].student_full_name.trim();
-            //     req.body[student].full_name = req.body[student].student_full_name.trim();
-            //     req.body[student].financial_year_id = 1;
-            //     req.body[student].role = 'STUDENT';
-            //     req.body[student].password = cryptoEncryptedString;
-            //     req.body[student].created_by = res.locals.user_id
-            //     req.body[student].updated_by = res.locals.user_id
-            // }
-            // const responseFromService = await this.authService.bulkCreateStudentService(req.body);
-            // // if (responseFromService.error) return res.status(406).send(dispatcher(res, responseFromService.error, 'error', speeches.STUDENT_EXISTS, 406));
-            // return res.status(201).send(dispatcher(res, responseFromService, 'success', speeches.USER_REGISTERED_SUCCESSFULLY, 201));
-            res.status(400).send(dispatcher(res, '', 'error', 'Registration has closed', 400));
-        } catch (error) {
-            next(error);
-        }
-    }
     private async login(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        let teamDetails: any;
         let studentDetails: any;
         let result;
         req.body['role'] = 'STUDENT'
@@ -523,47 +140,10 @@ export default class StudentController extends BaseController {
             return res.status(401).send(dispatcher(res, result.error, 'error', speeches.USER_RISTRICTED, 401));
         } else {
             studentDetails = await this.authService.getServiceDetails('student', { user_id: result.data.user_id });
-            teamDetails = await this.authService.getServiceDetails('team', { team_id: studentDetails.dataValues.team_id });
-            result.data['team_id'] = studentDetails.dataValues.team_id;
+            result.data['institution_name'] = studentDetails.dataValues.institution_name;
+            result.data['state'] = studentDetails.dataValues.state;
             result.data['student_id'] = studentDetails.dataValues.student_id;
-            if (!teamDetails) {
-                result.data['mentor_id'] = null;
-                result.data['team_name'] = null;
-            } else {
-                result.data['mentor_id'] = teamDetails.dataValues.mentor_id;
-                result.data['team_name'] = teamDetails.dataValues.team_name;
-            }
-            const mentorData = await this.authService.crudService.findOne(mentor, {
-                where: { mentor_id: teamDetails.dataValues.mentor_id },
-                include: {
-                    model: institutions
-                }
-            });
-            if (!mentorData || mentorData instanceof Error) {
-                return res.status(404).send(dispatcher(res, null, 'error', speeches.USER_REG_STATUS));
-            }
-            if (mentorData.dataValues.reg_status !== '3') {
-                return res.status(404).send(dispatcher(res, null, 'error', speeches.USER_REG_STATUS));
-            }
-            const valueDis = await db.query(`SELECT 
-                district_name
-            FROM
-            districts AS d
-            JOIN
-        blocks AS b ON d.district_id = b.district_id
-            JOIN
-        places AS p ON b.block_id = p.block_id
-            JOIN
-        institutions AS ins ON p.place_id = ins.place_id
-            WHERE
-                institution_id = ${mentorData.dataValues.institution.dataValues.institution_id};`, { type: QueryTypes.SELECT });
-            result.data['institution_name'] = mentorData.dataValues.institution.dataValues.institution_name;
-            let disName = '-'
-            if (valueDis && valueDis.length > 0) {
-                disName = Object.values(valueDis[0]).toString()
-            }
-            result.data['district'] = disName
-            // result.data['state'] = mentorData.dataValues.organization.state;
+            result.data['user_id'] = studentDetails.dataValues.user_id;
             return res.status(200).send(dispatcher(res, result.data, 'success', speeches.USER_LOGIN_SUCCESS));
         }
     }
@@ -589,222 +169,6 @@ export default class StudentController extends BaseController {
             return res.status(404).send(dispatcher(res, null, 'error', speeches.USER_PASSWORD));
         } else {
             return res.status(202).send(dispatcher(res, result.data, 'accepted', speeches.USER_PASSWORD_CHANGE, 202));
-        }
-    }
-    private async resetPassword(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT' && res.locals.role !== 'MENTOR' && res.locals.role !== 'STATE' && res.locals.role !== 'INSTITUTION') {
-            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
-        }
-        // accept the user_id or user_name from the req.body and update the password in the user table
-        // perviously while student registration changes we have changed the password is changed to random generated UUID and stored and send in the payload,
-        // now reset password use case is to change the password using user_id to some random generated ID and update the UUID 
-        // now reset password use case is to change to student_use_full_name123 and update the UUID 
-        const { user_id } = req.body;
-        if (!user_id) throw badRequest(speeches.USER_USERID_REQUIRED);
-        const findUser: any = await this.crudService.findOne(user, { where: { user_id } });
-        if (!findUser) throw badRequest(speeches.USER_NOT_FOUND);
-        if (findUser instanceof Error) throw findUser;
-        const cryptoEncryptedString = await this.authService.generateCryptEncryption(findUser.dataValues.username);
-        try {
-            req.body['username'] = findUser.dataValues.username;
-            req.body['encryptedString'] = cryptoEncryptedString;
-            const result = await this.authService.studentResetPassword(req.body);
-            if (!result) return res.status(404).send(dispatcher(res, null, 'error', speeches.USER_NOT_FOUND));
-            else if (result.error) return res.status(404).send(dispatcher(res, result.error, 'error', result.error));
-            else return res.status(200).send(dispatcher(res, result.data, 'accepted', speeches.USER_PASSWORD_CHANGE, 200));
-        } catch (error) {
-            next(error)
-        }
-        // const generatedUUID = this.nanoid();
-        // req.body['generatedPassword'] = generatedUUID;
-        // const result = await this.authService.restPassword(req.body, res);
-        // if (!result) {
-        //     return res.status(404).send(dispatcher(res, result.user_res, 'error', speeches.USER_NOT_FOUND));
-        // } else if (result.match) {
-        //     return res.status(404).send(dispatcher(res, result.match, 'error', speeches.USER_PASSWORD));
-        // } else {
-        //     return res.status(202).send(dispatcher(res, result, 'accepted', speeches.USER_PASSWORD_CHANGE, 202));
-        // }
-    }
-    // private async addBadgeToStudent(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-    //     if(res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT' && res.locals.role !== 'MENTOR'){
-    //         return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
-    //     }
-    //     try {
-    //         //todo: test this api : haven't manually tested this api yet 
-    //         const student_user_id: any = await this.authService.decryptGlobal(req.params.student_user_id);
-    //         const badges_ids: any = req.body.badge_ids;
-    //         const badges_slugs: any = req.body.badge_slugs;
-    //         let areSlugsBeingUsed = true;
-    //         if (!badges_slugs || !badges_slugs.length || badges_slugs.length <= 0) {
-    //             areSlugsBeingUsed = false;
-    //         }
-
-    //         if (!areSlugsBeingUsed && (!badges_ids || !badges_ids.length || badges_ids.length <= 0)) {
-    //             throw badRequest(speeches.BADGE_IDS_ARRAY_REQUIRED)
-    //         }
-
-    //         const serviceStudent = new StudentService()
-    //         let studentBadgesObj: any = await serviceStudent.getStudentBadges(student_user_id);
-    //         ///do not do empty or null check since badges obj can be null if no badges earned yet hence this is not an error condition 
-    //         if (studentBadgesObj instanceof Error) {
-    //             throw studentBadgesObj
-    //         }
-    //         if (!studentBadgesObj) {
-    //             studentBadgesObj = {};
-    //         }
-    //         const success: any = []
-    //         const errors: any = []
-
-    //         let forLoopArr = badges_slugs;
-
-    //         if (!areSlugsBeingUsed) {
-    //             forLoopArr = badges_ids
-    //         }
-
-    //         for (var i = 0; i < forLoopArr.length; i++) {
-    //             let badgeId = forLoopArr[i];
-    //             let badgeFindWhereClause: any = {
-    //                 slug: badgeId
-    //             }
-    //             if (!areSlugsBeingUsed) {
-    //                 badgeFindWhereClause = {
-    //                     badge_id: badgeId
-    //                 }
-    //             }
-    //             const badgeResultForId = await this.crudService.findOne(badge, { where: badgeFindWhereClause })
-    //             if (!badgeResultForId) {
-    //                 errors.push({ id: badgeId, err: badRequest(speeches.DATA_NOT_FOUND) })
-    //                 continue;
-    //             }
-    //             if (badgeResultForId instanceof Error) {
-    //                 errors.push({ id: badgeId, err: badgeResultForId })
-    //                 continue;
-    //             }
-
-    //             const date = new Date();
-    //             const studentHasBadgeObjForId = studentBadgesObj[badgeResultForId.dataValues.slug]
-    //             if (!studentHasBadgeObjForId || !studentHasBadgeObjForId.completed_date) {
-    //                 studentBadgesObj[badgeResultForId.dataValues.slug] = {
-    //                     completed_date: (new Date())
-    //                     // completed_date: ("" + date.getFullYear() + "-" + "" + (date.getMonth() + 1) + "-" + "" + date.getDay())
-    //                 }
-    //             }
-    //         }
-    //         const studentBadgesObjJson = JSON.stringify(studentBadgesObj)
-    //         const result: any = await student.update({ badges: studentBadgesObjJson }, {
-    //             where: {
-    //                 user_id: student_user_id
-    //             }
-    //         })
-    //         if (result instanceof Error) {
-    //             throw result;
-    //         }
-
-    //         if (!result) {
-    //             return res.status(404).send(dispatcher(res, null, 'error', speeches.USER_NOT_FOUND));
-    //         }
-    //         let dispatchStatus = "updated"
-    //         let resStatus = 202
-    //         let dispatchStatusMsg = speeches.USER_BADGES_LINKED
-    //         if (errors && errors.length > 0) {
-    //             dispatchStatus = "error"
-    //             dispatchStatusMsg = "error"
-    //             resStatus = 400
-    //         }
-
-    //         return res.status(resStatus).send(dispatcher(res, { errs: errors, success: studentBadgesObj }, dispatchStatus, dispatchStatusMsg, resStatus));
-    //     } catch (err) {
-    //         next(err)
-    //     }
-    // }
-    private async getStudentBadges(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT' && res.locals.role !== 'MENTOR') {
-            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
-        }
-        //todo: implement this api ...!!
-        try {
-            const student_user_id: any = await this.authService.decryptGlobal(req.params.student_user_id);
-            const serviceStudent = new StudentService()
-            let studentBadgesObj: any = await serviceStudent.getStudentBadges(student_user_id);
-            ///do not do empty or null check since badges obj can be null if no badges earned yet hence this is not an error condition 
-            if (studentBadgesObj instanceof Error) {
-                throw studentBadgesObj
-            }
-            if (!studentBadgesObj) {
-                studentBadgesObj = {};
-            }
-            const studentBadgesObjKeysArr = Object.keys(studentBadgesObj)
-            let newREQQuery: any = {}
-            if (req.query.Data) {
-                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
-                newREQQuery = JSON.parse(newQuery);
-            } else if (Object.keys(req.query).length !== 0) {
-                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
-            }
-            const paramStatus: any = newREQQuery.status;
-            const where: any = {};
-            let whereClauseStatusPart: any = {};
-            if (paramStatus && (paramStatus in constents.common_status_flags.list)) {
-                whereClauseStatusPart = { "status": paramStatus }
-            }
-            if (paramStatus && (paramStatus in constents.common_status_flags.list)) {
-                whereClauseStatusPart = { "status": paramStatus }
-            }
-            const allBadgesResult = await badge.findAll({
-                where: {
-                    [Op.and]: [
-                        whereClauseStatusPart,
-                        where,
-                    ]
-                },
-                raw: true,
-            });
-
-            if (!allBadgesResult) {
-                throw notFound(speeches.DATA_NOT_FOUND);
-            }
-            if (allBadgesResult instanceof Error) {
-                throw allBadgesResult;
-            }
-            // console.log(studentBadgesObj);
-            for (var i = 0; i < allBadgesResult.length; i++) {
-                const currBadge: any = allBadgesResult[i];
-                if (studentBadgesObj.hasOwnProperty("" + currBadge.slug)) {
-                    currBadge["student_status"] = studentBadgesObj[("" + currBadge.slug)].completed_date
-                } else {
-                    currBadge["student_status"] = null;
-                }
-                allBadgesResult[i] = currBadge
-            }
-
-            return res.status(200).send(dispatcher(res, allBadgesResult, 'success'));
-        } catch (err) {
-            next(err)
-        }
-    }
-    private async studentPasswordUpdate(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT' && res.locals.role !== 'MENTOR') {
-            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
-        }
-        try {
-            let count: any = 0;
-            const getStudentDetails = await this.crudService.findAll(student, {
-                attributes: ["UUID", "user_id", "student_id"]
-            });
-            if (!getStudentDetails) throw notFound(speeches.DATA_NOT_FOUND);
-            if (getStudentDetails instanceof Error) throw getStudentDetails;
-            for (let student of getStudentDetails) {
-                const studentPassword = await this.authService.generateCryptEncryption(student.dataValues.UUID);
-                const updatePasswordField = await this.crudService.update(user, {
-                    password: await bcrypt.hashSync(studentPassword, process.env.SALT || baseConfig.SALT),
-                }, { where: { user_id: student.dataValues.user_id } })
-                count++;
-            };
-            const data = { no_of_students_updated: count }
-            return res.status(200).send(dispatcher(res, data, 'updated'));
-        } catch (error) {
-            next(error);
         }
     }
     private async studentCertificate(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
@@ -843,72 +207,5 @@ export default class StudentController extends BaseController {
             next(error);
         }
     }
-    private async stuIdeaSubmissionEmail(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
-            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
-        }
-        try {
-            const { mentor_id, team_id, team_name, title } = req.body;
-            let data: any = {}
-            const contentText = `
-            <body style="border: solid;margin-right: 15%;margin-left: 15%; ">
-        <img src="https://aim-email-images.s3.ap-south-1.amazonaws.com/ATL-Marathon-Banner-1000X450px.jpg" alt="header" style="width: 100%;" />
-        <div style="padding: 1% 5%;">
-        <h3> Dear ${team_name} team,</h3>
-
-            <p>Your project has been successfully submitted in ATL Marathon 23-24.</p>
-            
-            <p>Project Titled: ${title}</p>
-            <p>We have received your project and it is currently in our review process. Our team will assess your work, and we will notify you of the evaluation results.</p>
-            
-            <p>We appreciate your hard work and dedication to this project, and we look forward to providing you with feedback and results as soon as possible.</p>
-            <p>Thank you for participating In ATL Marathon.</p>
-            <p>
-            <strong>
-            Regards,<br>
-            ATL Marathon</strong></p></div></body>`;
-            const subject = `ATL marathon - Idea submission successful`
-            const summary = await db.query(`SELECT GROUP_CONCAT(username SEPARATOR ', ') AS all_usernames
-            FROM (
-                    SELECT 
-                    u.username
-                FROM
-                    mentors AS m
-                        JOIN
-                    users AS u ON m.user_id = u.user_id
-                WHERE
-                    m.mentor_id = ${mentor_id}
-                UNION ALL
-                    SELECT 
-                    u.username
-                FROM
-                    students AS s
-                        JOIN
-                    users AS u ON s.user_id = u.user_id
-                WHERE
-                    s.team_id = ${team_id}
-            ) AS combined_usernames;`, { type: QueryTypes.SELECT });
-            data = summary;
-            const usernameArray = data[0].all_usernames;
-            let arrayOfUsernames = usernameArray.split(', ');
-            const result = await this.authService.triggerBulkEmail(arrayOfUsernames, contentText, subject);
-
-            return res.status(200).send(dispatcher(res, result, 'Email sent'));
-        } catch (error) {
-            next(error);
-        }
-    }
 }
-// private async updatePassword(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-//     const result = await this.authService.updatePassword(req.body, res);
-//     if (!result) {
-//         return res.status(404).send(dispatcher(res,null, 'error', speeches.USER_NOT_FOUND));
-//     } else if (result.error) {
-//         return res.status(404).send(dispatcher(res,result.error, 'error', result.error));
-//     }
-//     else if (result.match) {
-//         return res.status(404).send(dispatcher(res,null, 'error', speeches.USER_PASSWORD));
-//     } else {
-//         return res.status(202).send(dispatcher(res,result.data, 'accepted', speeches.USER_PASSWORD_CHANGE, 202));
-//     }
-// }
+
