@@ -17,7 +17,9 @@ export const studentSchema = Joi.object().keys({
     role: Joi.string().required().regex(constents.ALPHA_NUMERIC_PATTERN).messages({
         'string.empty': speeches.USER_ROLE_REQUIRED
     }),
-    password:Joi.string()
+    password: Joi.string(),
+    group: Joi.string(),
+    year_of_study: Joi.string()
 });
 
 export const studentLoginSchema = Joi.object().keys({
@@ -56,5 +58,7 @@ export const studentUpdateSchema = Joi.object().keys({
     institution_name: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     state: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     district: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
-    city: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN)
+    city: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
+    group: Joi.string(),
+    year_of_study: Joi.string()
 });
