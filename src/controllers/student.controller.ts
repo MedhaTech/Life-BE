@@ -32,6 +32,7 @@ export default class StudentController extends BaseController {
         this.router.get(`${this.path}/logout`, this.logout.bind(this));
         this.router.put(`${this.path}/changePassword`, validationMiddleware(studentChangePasswordSchema), this.changePassword.bind(this));
         this.router.get(`${this.path}/:student_user_id/studentCertificate`, this.studentCertificate.bind(this));
+        this.router.post(`${this.path}/emailOtp`, this.emailOpt.bind(this));
         super.initializeRoutes();
     }
     
@@ -205,6 +206,22 @@ export default class StudentController extends BaseController {
             return res.status(200).send(dispatcher(res, updateCertificate, 'Certificate Updated'));
         } catch (error) {
             next(error);
+        }
+    }
+    private async emailOpt(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            const { email } = req.body;
+            if (!email) {
+                throw badRequest(speeches.USER_EMAIL_REQUIRED);
+            }
+            const result = await this.authService.emailotp(req.body);
+            if (result.error) {
+                return res.status(404).send(dispatcher(res, result.error, 'error', result.error));
+            } else {
+                return res.status(202).send(dispatcher(res, result.data, 'accepted', speeches.OTP_SEND, 202));
+            }
+        } catch (error) {
+            next(error)
         }
     }
 }

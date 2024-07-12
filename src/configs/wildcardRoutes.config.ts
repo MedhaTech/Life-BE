@@ -48,5 +48,7 @@ export const wildcardRoutes = [
     "/api/v1/mentors/triggerWelcomeEmail",
     "/api/v1/institutions/checkOrg",
     "/api/v1/institutions/login",
-    "/api/v1/institutions/logout"
+    "/api/v1/institutions/logout",
+    "/api/v1/students/emailOtp",
+    "/api/v1/students/register"
 ];

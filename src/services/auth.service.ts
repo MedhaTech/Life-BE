@@ -362,18 +362,41 @@ export default class authService {
         };
         try {
             // Create the promise and SES service object
-            let sendPromise = new AWS.SES({ apiVersion: '2010-12-01' }).sendEmail(params).promise();
-            // Handle promise's fulfilled/rejected states
-            await sendPromise.then((data: any) => {
-                result['messageId'] = data.MessageId;
-                result['otp'] = otp;
-            }).catch((err: any) => {
-                throw err;
-            });
-            //result['otp'] = 112233;
+            // let sendPromise = new AWS.SES({ apiVersion: '2010-12-01' }).sendEmail(params).promise();
+            // // Handle promise's fulfilled/rejected states
+            // await sendPromise.then((data: any) => {
+            //     result['messageId'] = data.MessageId;
+            //     result['otp'] = otp;
+            // }).catch((err: any) => {
+            //     throw err;
+            // });
+            result['otp'] = 112233;
             return result;
         } catch (error) {
             return error;
+        }
+    }
+    async emailotp(requestBody: any) {
+        let result: any = {};
+        try {
+            const user_data = await this.crudService.findOne(user, { where: { username: requestBody.email } });
+            if (user_data) {
+                throw badRequest('Email');
+            }
+            else {
+                
+                    const otp = await this.triggerEmail(requestBody.email, 1, 'no');
+                    if (otp instanceof Error) {
+                        throw otp;
+                    }
+                    const hashedPassword = await this.encryptGlobal(JSON.stringify(otp.otp));
+                    result.data = hashedPassword;
+                    return result;
+                }
+            
+        } catch (error) {
+            result['error'] = error;
+            return result;
         }
     }
     //bulk email process
@@ -443,7 +466,7 @@ export default class authService {
     async mobileotp(requestBody: any) {
         let result: any = {};
         try {
-            const otp = await this.triggerOtpMsg(requestBody.mobile, 1);
+            const otp = await this.triggerOtpMsg(requestBody.email, 1);
             if (otp instanceof Error) {
                 throw otp;
             }
