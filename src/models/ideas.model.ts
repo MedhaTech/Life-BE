@@ -7,7 +7,7 @@ export class ideas extends Model<InferAttributes<ideas>, InferCreationAttributes
     declare idea_id: CreationOptional<number>;
     declare financial_year_id: number;
     declare theme_problem_id: number;
-    declare team_id: number;
+    declare student_id: number;
     declare idea_title: String;
     declare solution_statement: String;
     declare detailed_solution: string;
@@ -47,7 +47,7 @@ ideas.init(
             type: DataTypes.INTEGER,
             allowNull: true
         },
-        team_id: {
+        student_id: {
             type: DataTypes.INTEGER,
             allowNull: false
         },
