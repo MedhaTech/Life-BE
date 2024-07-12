@@ -27,7 +27,7 @@ export default class ideasController extends BaseController {
         this.router.put(this.path + "/ideaUpdate", this.UpdateIdea.bind(this));
         this.router.get(this.path + '/submittedDetails', this.getResponse.bind(this));
         this.router.post(this.path + "/fileUpload", this.handleAttachment.bind(this));
-        this.router.get(`${this.path}/ideastatusbyteamId`, this.getideastatusbyteamid.bind(this));
+       // this.router.get(`${this.path}/ideastatusbyteamId`, this.getideastatusbyteamid.bind(this));
         this.router.get(this.path + '/fetchRandomChallenge', this.getRandomChallenge.bind(this));
         this.router.get(`${this.path}/evaluated/:evaluator_id`, this.getChallengesForEvaluator.bind(this))
         this.router.get(`${this.path}/finalEvaluation/`, this.finalEvaluation.bind(this));
@@ -131,7 +131,6 @@ export default class ideasController extends BaseController {
                             data = await this.crudService.findOne(ideas, {
                                 attributes: [
                                     "idea_id",
-                                    "financial_year_id",
                                     "theme_problem_id",
                                     "student_id",
                                     "idea_title",
@@ -158,15 +157,6 @@ export default class ideasController extends BaseController {
                                     ],
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_code'
                                     ]
                                 ],
                                 where: {
@@ -191,7 +181,6 @@ export default class ideasController extends BaseController {
                             data = await this.crudService.findOne(ideas, {
                                 attributes: [
                                     "idea_id",
-                                    "financial_year_id",
                                     "theme_problem_id",
                                     "student_id",
                                     "idea_title",
@@ -218,15 +207,6 @@ export default class ideasController extends BaseController {
                                     ],
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_code'
                                     ]
                                 ],
                                 where: {
@@ -277,7 +257,6 @@ export default class ideasController extends BaseController {
                 data = await this.crudService.findOne(ideas, {
                     attributes: [
                         "idea_id",
-                        "financial_year_id",
                         "theme_problem_id",
                         "student_id",
                         "idea_title",
@@ -299,13 +278,7 @@ export default class ideasController extends BaseController {
                         "evaluated_at",
                         [
                             db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
-                        ],
-                        [
-                            db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_code'
-                        ],
-                        [
-                            db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
-                        ],
+                        ]
                     ],
                     where: {
                         [Op.and]: [
@@ -373,42 +346,6 @@ export default class ideasController extends BaseController {
                                     ],
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_code'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_mobile'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_email FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_email'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_whatsapp_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_whatsapp_mobile'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT place_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id where t.student_id = \`ideas\`.\`student_id\`)`), 'place_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT block_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join blocks as b on p.block_id = b.block_id where t.student_id = \`ideas\`.\`student_id\`)`), 'block_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT taluk_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join taluks as ta on p.taluk_id = ta.taluk_id where t.student_id = \`ideas\`.\`student_id\`)`), 'taluk_name'
                                     ]
                                 ],
                                 include: {
@@ -484,42 +421,6 @@ export default class ideasController extends BaseController {
                                     ],
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_code'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_mobile'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_email FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_email'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_whatsapp_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_whatsapp_mobile'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT place_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id where t.student_id = \`ideas\`.\`student_id\`)`), 'place_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT block_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join blocks as b on p.block_id = b.block_id where t.student_id = \`ideas\`.\`student_id\`)`), 'block_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT taluk_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join taluks as ta on p.taluk_id = ta.taluk_id where t.student_id = \`ideas\`.\`student_id\`)`), 'taluk_name'
                                     ]
                                 ],
                                 where: {
@@ -625,43 +526,7 @@ export default class ideasController extends BaseController {
                                 db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                             ],
                             [
-                                db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_code'
-                            ],
-                            [
-                                db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
-                            ],
-                            [
                                 db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                            ],
-                            [
-                                db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                            ],
-                            [
-                                db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
-                            ],
-                            [
-                                db.literal(`(SELECT institution_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_name'
-                            ],
-                            [
-                                db.literal(`(SELECT principal_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_name'
-                            ],
-                            [
-                                db.literal(`(SELECT principal_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_mobile'
-                            ],
-                            [
-                                db.literal(`(SELECT principal_email FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_email'
-                            ],
-                            [
-                                db.literal(`(SELECT principal_whatsapp_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_whatsapp_mobile'
-                            ],
-                            [
-                                db.literal(`(SELECT place_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id where t.student_id = \`ideas\`.\`student_id\`)`), 'place_name'
-                            ],
-                            [
-                                db.literal(`(SELECT block_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join blocks as b on p.block_id = b.block_id where t.student_id = \`ideas\`.\`student_id\`)`), 'block_name'
-                            ],
-                            [
-                                db.literal(`(SELECT taluk_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join taluks as ta on p.taluk_id = ta.taluk_id where t.student_id = \`ideas\`.\`student_id\`)`), 'taluk_name'
                             ]
                         ],
                         include: {
@@ -800,9 +665,6 @@ export default class ideasController extends BaseController {
                 attributes: [
                     [
                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                    ],
-                    [
-                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
                     ],
                     "idea_id",
                     "financial_year_id",
@@ -1392,42 +1254,6 @@ export default class ideasController extends BaseController {
                     ],
                     [
                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                    ],
-                    [
-                        db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
-                    ],
-                    [
-                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                    ],
-                    [
-                        db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_code'
-                    ],
-                    [
-                        db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
-                    ],
-                    [
-                        db.literal(`(SELECT institution_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'institution_name'
-                    ],
-                    [
-                        db.literal(`(SELECT principal_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_name'
-                    ],
-                    [
-                        db.literal(`(SELECT principal_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_mobile'
-                    ],
-                    [
-                        db.literal(`(SELECT principal_email FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_email'
-                    ],
-                    [
-                        db.literal(`(SELECT principal_whatsapp_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.student_id = \`ideas\`.\`student_id\`)`), 'principal_whatsapp_mobile'
-                    ],
-                    [
-                        db.literal(`(SELECT place_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id where t.student_id = \`ideas\`.\`student_id\`)`), 'place_name'
-                    ],
-                    [
-                        db.literal(`(SELECT block_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join blocks as b on p.block_id = b.block_id where t.student_id = \`ideas\`.\`student_id\`)`), 'block_name'
-                    ],
-                    [
-                        db.literal(`(SELECT taluk_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join taluks as ta on p.taluk_id = ta.taluk_id where t.student_id = \`ideas\`.\`student_id\`)`), 'taluk_name'
                     ]
                 ],
                 where: {
