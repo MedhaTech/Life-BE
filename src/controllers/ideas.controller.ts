@@ -661,7 +661,7 @@ export default class ideasController extends BaseController {
             if (student_id) {
                 condition.student_id = student_id
             }
-            data = await this.crudService.findOne(ideas, {
+            data = await this.crudService.findAll(ideas, {
                 attributes: [
                     [
                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
