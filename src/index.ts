@@ -20,6 +20,7 @@ import LatestNewsController from "./controllers/latest_news.controller";
 import popupController from "./controllers/popup.controller";
 import ideasController from "./controllers/ideas.controller";
 import themes_problemsController from "./controllers/themes_problems.controller";
+import StudentController from "./controllers/student.controller";
 
 // validating env variables
 validateEnv();
@@ -44,7 +45,8 @@ try {
         new LatestNewsController,
         new popupController,
         new ideasController,
-        new themes_problemsController
+        new themes_problemsController,
+        new StudentController
     ], Number(process.env.APP_PORT));
     // starting app
     app.listen();
