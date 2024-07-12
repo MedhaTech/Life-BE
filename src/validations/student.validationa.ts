@@ -18,8 +18,8 @@ export const studentSchema = Joi.object().keys({
         'string.empty': speeches.USER_ROLE_REQUIRED
     }),
     password: Joi.string(),
-    group: Joi.string(),
-    year_of_study: Joi.string()
+    group: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
+    year_of_study: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN)
 });
 
 export const studentLoginSchema = Joi.object().keys({
