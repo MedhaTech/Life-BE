@@ -14,6 +14,8 @@ export class student extends Model<InferAttributes<student>, InferCreationAttrib
     declare email: string;
     declare Gender: string;
     declare Age: number;
+    declare year_of_study: number;
+    declare group: string;
     declare institution_name: string;
     declare state: string;
     declare district: string;
@@ -66,6 +68,12 @@ student.init(
         },
         state: {
             type: DataTypes.STRING
+        },
+        group: {
+            type: DataTypes.STRING
+        },
+        year_of_study: {
+            type: DataTypes.INTEGER
         },
         district: {
             type: DataTypes.STRING
