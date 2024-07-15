@@ -30,6 +30,7 @@ export class ideas extends Model<InferAttributes<ideas>, InferCreationAttributes
     declare rejected_reason: String;
     declare final_result: Enumerator;
     declare district: String;
+    declare state: String;
 }
 
 ideas.init(
@@ -143,6 +144,10 @@ ideas.init(
             allowNull: true,
         },
         district: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        state: {
             type: DataTypes.STRING,
             allowNull: true,
         }

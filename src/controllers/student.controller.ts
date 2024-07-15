@@ -143,6 +143,7 @@ export default class StudentController extends BaseController {
             studentDetails = await this.authService.getServiceDetails('student', { user_id: result.data.user_id });
             result.data['institution_name'] = studentDetails.dataValues.institution_name;
             result.data['state'] = studentDetails.dataValues.state;
+            result.data['district'] = studentDetails.dataValues.district;
             result.data['student_id'] = studentDetails.dataValues.student_id;
             result.data['user_id'] = studentDetails.dataValues.user_id;
             return res.status(200).send(dispatcher(res, result.data, 'success', speeches.USER_LOGIN_SUCCESS));
