@@ -595,9 +595,12 @@ export default class ideasController extends BaseController {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
-            const { student_id, problem_statement_id, status, initiated_by } = req.body;
+            const { student_id, problem_statement_id, status, initiated_by,idea_id} = req.body;
             if (!student_id) {
                 throw unauthorized(speeches.USER_TEAMID_REQUIRED)
+            }
+            if (!idea_id) {
+                throw unauthorized(speeches.USER_IDEAID_REQUIRED)
             }
             var dataBodyforThemes = { ...req.body };
             dataBodyforThemes['status'] = 'MANUAL'
@@ -631,7 +634,7 @@ export default class ideasController extends BaseController {
             }
             const where: any = {};
             const valuebody = req.body;
-            where[`student_id`] = student_id;
+            where[`idea_id`] = idea_id;
             let result: any = await this.crudService.update(ideas, valuebody, { where: where });
             return res.status(200).send(dispatcher(res, result, 'updated'));
         } catch (err) {
