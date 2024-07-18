@@ -27,7 +27,7 @@ export default class ideasController extends BaseController {
         this.router.put(this.path + "/ideaUpdate", this.UpdateIdea.bind(this));
         this.router.get(this.path + '/submittedDetails', this.getResponse.bind(this));
         this.router.post(this.path + "/fileUpload", this.handleAttachment.bind(this));
-       // this.router.get(`${this.path}/ideastatusbyteamId`, this.getideastatusbyteamid.bind(this));
+        // this.router.get(`${this.path}/ideastatusbyteamId`, this.getideastatusbyteamid.bind(this));
         this.router.get(this.path + '/fetchRandomChallenge', this.getRandomChallenge.bind(this));
         this.router.get(`${this.path}/evaluated/:evaluator_id`, this.getChallengesForEvaluator.bind(this))
         this.router.get(`${this.path}/finalEvaluation/`, this.finalEvaluation.bind(this));
@@ -572,11 +572,31 @@ export default class ideasController extends BaseController {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
-            const { student_id } = req.body;
+            const { student_id, problem_statement_id } = req.body;
             if (!student_id) {
                 throw unauthorized(speeches.USER_TEAMID_REQUIRED)
             }
             req.body['financial_year_id'] = 1;
+
+            var dataBodyforThemes = { ...req.body };
+            dataBodyforThemes['status'] = 'MANUAL'
+            if (problem_statement_id) {
+                if (problem_statement_id === 0 || problem_statement_id === '0') {
+                    let result: any = await this.crudService.create(themes_problems, dataBodyforThemes);
+                    req.body['theme_problem_id'] = result.dataValues.theme_problem_id;
+                } else {
+                    const where: any = {};
+                    where[`theme_problem_id`] = problem_statement_id;
+                    where[`status`] = 'MANUAL';
+                    const finsThemeStatus: any = await this.crudService.findOne(themes_problems, { where: { 'theme_problem_id': problem_statement_id } })
+
+                    if (finsThemeStatus.dataValues.status === 'MANUAL') {
+                        let result: any = await this.crudService.update(themes_problems, dataBodyforThemes, { where: where });
+                    }
+                    req.body['theme_problem_id'] = problem_statement_id;
+                }
+            }
+
             let result: any = await this.crudService.create(ideas, req.body);
             if (!result) {
                 throw badRequest(speeches.INVALID_DATA);
@@ -585,7 +605,7 @@ export default class ideasController extends BaseController {
                 throw result;
             }
             res.status(200).send(dispatcher(res, result))
-           // res.status(400).send(dispatcher(res, '', 'error', 'idea initiation is closed', 400));
+            // res.status(400).send(dispatcher(res, '', 'error', 'idea initiation is closed', 400));
         } catch (err) {
             next(err)
         }
@@ -595,7 +615,7 @@ export default class ideasController extends BaseController {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
-            const { student_id, problem_statement_id, status, initiated_by,idea_id} = req.body;
+            const { student_id, problem_statement_id, status, initiated_by, idea_id } = req.body;
             if (!student_id) {
                 throw unauthorized(speeches.USER_TEAMID_REQUIRED)
             }
@@ -741,8 +761,8 @@ export default class ideasController extends BaseController {
             if (!allowedTypes.includes(files[0].type)) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'This file type not allowed', 400));
             }
-            if (files[0].name.match(/\.exe/)){
-                return res.status(400).send(dispatcher(res,'','error','This file type not allowed',400));
+            if (files[0].name.match(/\.exe/)) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'This file type not allowed', 400));
             }
             const errs: any = [];
             let attachments: any = [];
