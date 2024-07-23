@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { customAlphabet } from 'nanoid';
 import { speeches } from '../configs/speeches.config';
 import dispatcher from '../utils/dispatch.util';
-import { studentSchema, studentLoginSchema, studentUpdateSchema, studentChangePasswordSchema, studentResetPasswordSchema} from '../validations/student.validationa';
+import { studentSchema, studentLoginSchema, studentUpdateSchema, studentChangePasswordSchema, studentResetPasswordSchema } from '../validations/student.validationa';
 import bcrypt from 'bcrypt';
 import authService from '../services/auth.service';
 import BaseController from './base.controller';
@@ -11,7 +11,7 @@ import validationMiddleware from '../middlewares/validation.middleware';
 import { user } from '../models/user.model';
 import { baseConfig } from '../configs/base.config';
 import { student } from '../models/student.model';
-import { badRequest, internal, notFound } from 'boom';
+import { badRequest, internal, notFound, unauthorized } from 'boom';
 import { S3 } from "aws-sdk";
 import fs from 'fs';
 
@@ -35,10 +35,47 @@ export default class StudentController extends BaseController {
         this.router.put(`${this.path}/changePassword`, validationMiddleware(studentChangePasswordSchema), this.changePassword.bind(this));
         this.router.get(`${this.path}/:student_user_id/studentCertificate`, this.studentCertificate.bind(this));
         this.router.post(`${this.path}/emailOtp`, this.emailOpt.bind(this));
-        this.router.post(`${this.path}/idcardUpload`,this.handleAttachment.bind(this));
+        this.router.post(`${this.path}/idcardUpload`, this.handleAttachment.bind(this));
         super.initializeRoutes();
     }
-    
+    protected async getData(req: Request, res: Response, next: NextFunction) {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            throw unauthorized(speeches.ROLE_ACCES_DECLINE)
+        }
+        try {
+            let newREQQuery: any = {}
+            if (req.query.Data) {
+                let newQuery: any = await this.authService.decryptGlobal(req.query.Data);
+                newREQQuery = JSON.parse(newQuery);
+            } else if (Object.keys(req.query).length !== 0) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
+            }
+            let { state } = newREQQuery;
+            let data: any = {}
+            const where: any = {};
+            where[`status`] = "ACTIVE";
+            if (state !== 'All States' && state !== undefined) {
+
+                where[`state`] = state;
+            }
+            const { id } = req.params;
+            if (id) {
+                const newParamId = await this.authService.decryptGlobal(req.params.id);
+                where[`student_id`] = newParamId;
+                data = await this.crudService.findOne(student, {
+                    where: [where]
+                })
+            }
+            else {
+                data = await this.crudService.findAll(student, {
+                    where: [where]
+                })
+            }
+            return res.status(200).send(dispatcher(res, data, 'success'));
+        } catch (error) {
+            next(error);
+        }
+    }
     protected async updateData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
         if (res.locals.role !== 'ADMIN' && res.locals.role !== 'MENTOR' && res.locals.role !== 'STATE' && res.locals.role !== 'INSTITUTION') {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
@@ -118,7 +155,7 @@ export default class StudentController extends BaseController {
     private async register(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
         try {
             if (!req.body.role || req.body.role !== 'STUDENT') return res.status(406).send(dispatcher(res, null, 'error', speeches.USER_ROLE_REQUIRED, 406));
-            
+
             const cryptoEncryptedString = await this.authService.generateCryptEncryption(req.body.passwprd);
             if (!req.body.password || req.body.password === "") req.body.password = cryptoEncryptedString;
 
@@ -180,9 +217,9 @@ export default class StudentController extends BaseController {
         try {
             const rawfiles: any = req.files;
             const files: any = Object.values(rawfiles);
-            const allowedTypes = ['image/jpeg', 'image/png','application/msword','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            const allowedTypes = ['image/jpeg', 'image/png', 'application/msword', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
             if (!allowedTypes.includes(files[0].type)) {
-                return res.status(400).send(dispatcher(res,'','error','This file type not allowed',400)); 
+                return res.status(400).send(dispatcher(res, '', 'error', 'This file type not allowed', 400));
             }
             const errs: any = [];
             let attachments: any = [];
@@ -199,9 +236,9 @@ export default class StudentController extends BaseController {
             let file_name_prefix: any;
             if (process.env.DB_HOST?.includes("prod")) {
                 file_name_prefix = `student/idCard`
-            } else if(process.env.DB_HOST?.includes("dev")){
+            } else if (process.env.DB_HOST?.includes("dev")) {
                 file_name_prefix = `student/idCard/dev`
-            }else {
+            } else {
                 file_name_prefix = `student/idCard/stage`
             }
             for (const file_name of Object.keys(files)) {
