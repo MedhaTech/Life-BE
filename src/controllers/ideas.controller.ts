@@ -1055,9 +1055,9 @@ export default class ideasController extends BaseController {
                                 [
                                     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                 ],
-                                [
-                                    db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
-                                ]
+                                // [
+                                //     db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
+                                // ]
                                 // [
                                 //     db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
                                 // ]
@@ -1122,9 +1122,9 @@ export default class ideasController extends BaseController {
                                 [
                                     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                 ],
-                                [
-                                    db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
-                                ]
+                                // [
+                                //     db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
+                                // ]
                                 // [
                                 //     db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
                                 // ]

@@ -13,7 +13,6 @@ export interface courseModuleAttributes {
 
 export interface teamAttributes {
     team_id: number;
-    team_name: string;
     student_id: number;
     student_name: string;
     student_email: string;
