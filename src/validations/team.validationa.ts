@@ -19,7 +19,10 @@ export const teamSchema = Joi.object().keys({
     }),
     student_name: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     student_email: Joi.string().email(),
-    student_mobile: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN)
+    student_mobile: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
+    reg_no: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
+    id_card:Joi.string(),
+    Gender: Joi.string().valid(...Object.values(constents.gender_flags.list))
 
 });
 export const teamUpdateSchema = Joi.object().keys({

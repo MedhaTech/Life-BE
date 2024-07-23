@@ -12,14 +12,16 @@ export const studentSchema = Joi.object().keys({
     Age: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     institution_name: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     state: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
-    district: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
+    district: Joi.string().regex(constents.ALPHA_NUMERIC_PLUS_PATTERN),
     city: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     role: Joi.string().required().regex(constents.ALPHA_NUMERIC_PATTERN).messages({
         'string.empty': speeches.USER_ROLE_REQUIRED
     }),
     password: Joi.string(),
     group: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
-    year_of_study: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN)
+    year_of_study: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
+    reg_no: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
+    id_card:Joi.string()
 });
 
 export const studentLoginSchema = Joi.object().keys({
@@ -57,8 +59,10 @@ export const studentUpdateSchema = Joi.object().keys({
     Age: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     institution_name: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     state: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
-    district: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
+    district: Joi.string().regex(constents.ALPHA_NUMERIC_PLUS_PATTERN),
     city: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     group: Joi.string(),
-    year_of_study: Joi.string()
+    year_of_study: Joi.string(),
+    reg_no: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
+    id_card:Joi.string()
 });

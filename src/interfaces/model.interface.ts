@@ -18,6 +18,9 @@ export interface teamAttributes {
     student_name: string;
     student_email: string;
     student_mobile: number;
+    gender: string;
+    reg_no: string;
+    id_card: string;
     status: Enumerator;
     created_by: number;
     created_at: Date;
