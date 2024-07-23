@@ -49,7 +49,7 @@ export default class TeamController extends BaseController {
         }
     }
     protected async handleAttachment(req: Request, res: Response, next: NextFunction) {
-        if(res.locals.role !== 'ADMIN' && res.locals.role !== 'student'){
+        if(res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT'){
             return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
         }
         try {
