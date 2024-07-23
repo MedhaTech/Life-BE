@@ -15,10 +15,6 @@ team.init(
             autoIncrement: true,
             primaryKey: true
         },
-        team_name: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
         student_id: {
             type: DataTypes.INTEGER,
             allowNull: true

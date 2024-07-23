@@ -7,10 +7,6 @@ export const createTeamRequestBody = {
             type: 'string',
             example: '12',
         },
-        team_name: {
-            type: 'string',
-            example: 'fast_five',
-        }
     }
 };
 export const teamUpdatesRequestBody = {
