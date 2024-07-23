@@ -177,9 +177,6 @@ export default class StudentController extends BaseController {
         }
     }
     protected async handleAttachment(req: Request, res: Response, next: NextFunction) {
-        if(res.locals.role !== 'ADMIN' && res.locals.role !== 'student'){
-            return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
-        }
         try {
             const rawfiles: any = req.files;
             const files: any = Object.values(rawfiles);
