@@ -20,6 +20,8 @@ export class student extends Model<InferAttributes<student>, InferCreationAttrib
     declare state: string;
     declare district: string;
     declare city: string;
+    declare reg_no: string;
+    declare id_card: string;
     declare certificate_issued: Date;
     declare status: Enumerator;
     declare created_by: number;
@@ -79,6 +81,12 @@ student.init(
             type: DataTypes.STRING
         },
         city: {
+            type: DataTypes.STRING
+        },
+        reg_no: {
+            type: DataTypes.STRING
+        },
+        id_card: {
             type: DataTypes.STRING
         },
         certificate_issued: {

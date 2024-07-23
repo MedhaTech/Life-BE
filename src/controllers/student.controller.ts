@@ -12,6 +12,8 @@ import { user } from '../models/user.model';
 import { baseConfig } from '../configs/base.config';
 import { student } from '../models/student.model';
 import { badRequest, internal, notFound } from 'boom';
+import { S3 } from "aws-sdk";
+import fs from 'fs';
 
 
 export default class StudentController extends BaseController {
@@ -33,6 +35,7 @@ export default class StudentController extends BaseController {
         this.router.put(`${this.path}/changePassword`, validationMiddleware(studentChangePasswordSchema), this.changePassword.bind(this));
         this.router.get(`${this.path}/:student_user_id/studentCertificate`, this.studentCertificate.bind(this));
         this.router.post(`${this.path}/emailOtp`, this.emailOpt.bind(this));
+        this.router.post(`${this.path}/idcardUpload`,this.handleAttachment.bind(this));
         super.initializeRoutes();
     }
     
@@ -171,6 +174,61 @@ export default class StudentController extends BaseController {
             return res.status(404).send(dispatcher(res, null, 'error', speeches.USER_PASSWORD));
         } else {
             return res.status(202).send(dispatcher(res, result.data, 'accepted', speeches.USER_PASSWORD_CHANGE, 202));
+        }
+    }
+    protected async handleAttachment(req: Request, res: Response, next: NextFunction) {
+        if(res.locals.role !== 'ADMIN' && res.locals.role !== 'student'){
+            return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
+        }
+        try {
+            const rawfiles: any = req.files;
+            const files: any = Object.values(rawfiles);
+            const allowedTypes = ['image/jpeg', 'image/png','application/msword','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(files[0].type)) {
+                return res.status(400).send(dispatcher(res,'','error','This file type not allowed',400)); 
+            }
+            const errs: any = [];
+            let attachments: any = [];
+            let result: any = {};
+            let s3 = new S3({
+                apiVersion: '2006-03-01',
+                region: process.env.AWS_REGION,
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+            });
+            if (!req.files) {
+                return result;
+            }
+            let file_name_prefix: any;
+            if (process.env.DB_HOST?.includes("prod")) {
+                file_name_prefix = `student/idCard`
+            } else if(process.env.DB_HOST?.includes("dev")){
+                file_name_prefix = `student/idCard/dev`
+            }else {
+                file_name_prefix = `student/idCard/stage`
+            }
+            for (const file_name of Object.keys(files)) {
+                const file = files[file_name];
+                const readFile: any = await fs.readFileSync(file.path);
+                if (readFile instanceof Error) {
+                    errs.push(`Error uploading file: ${file.originalFilename} err: ${readFile}`)
+                }
+                file.originalFilename = `${file_name_prefix}/${file.originalFilename}`;
+                let params = {
+                    Bucket: `${process.env.BUCKET}`,
+                    Key: file.originalFilename,
+                    Body: readFile
+                };
+                let options: any = { partSize: 20 * 1024 * 1024, queueSize: 2 };
+                await s3.upload(params, options).promise()
+                    .then((data: any) => { attachments.push(data.Location) })
+                    .catch((err: any) => { errs.push(`Error uploading file: ${file.originalFilename}, err: ${err.message}`) })
+                result['attachments'] = attachments;
+                result['errors'] = errs;
+            }
+            res.status(200).send(dispatcher(res, result));
+        } catch (err) {
+            next(err)
         }
     }
     private async studentCertificate(req: Request, res: Response, next: NextFunction): Promise<Response | void> {

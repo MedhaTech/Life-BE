@@ -32,6 +32,16 @@ team.init(
         student_mobile: {
             type: DataTypes.INTEGER
         },
+        gender: {
+            type: DataTypes.ENUM(...Object.values(constents.gender_flags.list)),
+            defaultValue: constents.gender_flags.default
+        },
+        reg_no: {
+            type: DataTypes.STRING
+        },
+        id_card: {
+            type: DataTypes.STRING
+        },
         status: {
             type: DataTypes.ENUM(...Object.values(constents.common_status_flags.list)),
             defaultValue: constents.common_status_flags.default
