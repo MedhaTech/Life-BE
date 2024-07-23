@@ -54,6 +54,7 @@ export default class TeamController extends BaseController {
         }
         try {
             const rawfiles: any = req.files;
+            const userId = res.locals.user_id;
             const files: any = Object.values(rawfiles);
             const allowedTypes = ['image/jpeg', 'image/png','application/msword','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
             if (!allowedTypes.includes(files[0].type)) {
@@ -73,11 +74,11 @@ export default class TeamController extends BaseController {
             }
             let file_name_prefix: any;
             if (process.env.DB_HOST?.includes("prod")) {
-                file_name_prefix = `team/idCard`
+                file_name_prefix = `team/idCard/${userId}`
             } else if(process.env.DB_HOST?.includes("dev")){
-                file_name_prefix = `team/idCard/dev`
+                file_name_prefix = `team/idCard/dev/${userId}`
             }else {
-                file_name_prefix = `team/idCard/stage`
+                file_name_prefix = `team/idCard/stage/${userId}`
             }
             for (const file_name of Object.keys(files)) {
                 const file = files[file_name];
