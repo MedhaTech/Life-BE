@@ -3,12 +3,13 @@ import ValidationsHolder from "../validations/validationHolder";
 import BaseController from "./base.controller";
 import authService from '../services/auth.service';
 import { Request, Response, NextFunction } from 'express';
-import { unauthorized } from "boom";
+import { badRequest, unauthorized } from "boom";
 import { speeches } from "../configs/speeches.config";
 import dispatcher from "../utils/dispatch.util";
 import { team } from "../models/team.model";
 import { S3 } from "aws-sdk";
 import fs from 'fs';
+import { user } from "../models/user.model";
 
 export default class TeamController extends BaseController {
 
@@ -104,4 +105,27 @@ export default class TeamController extends BaseController {
             next(err)
         }
     }
+    protected async createData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if(res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT'){
+            return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
+        }
+        try{
+            const { student_email } = req.body;
+            const user_res = await this.crudService.findOne(user, { where: { username: student_email } });
+            const team_res = await this.crudService.findOne(team, { where: { student_email: student_email } });
+            if (user_res) {
+                throw badRequest('Email already exists');
+            }
+            if (team_res) {
+                throw badRequest('Email already exists');
+            }
+            const payload = this.autoFillTrackingColumns(req, res, team);
+            const data = await this.crudService.create(team,payload);
+            return res.status(201).send(dispatcher(res, data, 'success', 'Student successfully Created', 201));
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+
 }
