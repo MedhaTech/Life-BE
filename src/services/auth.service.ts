@@ -658,12 +658,4 @@ export default class authService {
             return error;
         }
     }
-    async convertingObjtoarrofiteams(data:any){
-        try {
-            const themeNames = data.map((theme :any) => theme.theme_name);
-            return themeNames;
-        } catch (error) {
-            return error;
-        }
-    }
 }

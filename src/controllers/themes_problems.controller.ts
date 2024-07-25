@@ -4,8 +4,7 @@ import BaseController from "./base.controller";
 import dispatcher from "../utils/dispatch.util";
 import { speeches } from "../configs/speeches.config";
 import { themes_problems } from "../models/themes_problems.model";
-import { QueryTypes, Sequelize } from "sequelize";
-import db from "../utils/dbconnection.util";
+import { Sequelize } from "sequelize";
 
 export default class themes_problemsController extends BaseController {
 
@@ -25,10 +24,6 @@ export default class themes_problemsController extends BaseController {
         }
         try {
             let response: any = [];
-            const listofusertheme = await db.query(`SELECT distinct theme_name FROM ideas JOIN themes_problems ON ideas.theme_problem_id = themes_problems.theme_problem_id WHERE initiated_by = ${res.locals.user_id}`, {
-                type: QueryTypes.SELECT,
-            });
-            const listofuserthemearray = await this.authService.convertingObjtoarrofiteams(listofusertheme);
             const result = await this.crudService.findAll(themes_problems, {
                 attributes: [
 
@@ -42,7 +37,6 @@ export default class themes_problemsController extends BaseController {
             result.forEach((obj: any) => {
                 response.push(obj.dataValues.theme_name)
             });
-            response = response.filter((item : any) => !listofuserthemearray.includes(item));
             return res.status(200).send(dispatcher(res, response))
         } catch (err) {
             next(err)
