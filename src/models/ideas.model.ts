@@ -31,6 +31,8 @@ export class ideas extends Model<InferAttributes<ideas>, InferCreationAttributes
     declare final_result: Enumerator;
     declare district: String;
     declare state: String;
+    declare youtubelink: String;
+    declare fpp: String;
 }
 
 ideas.init(
@@ -84,6 +86,12 @@ ideas.init(
             type: DataTypes.ENUM(...Object.values(constents.challenges_flags.list)),
             allowNull: false,
             defaultValue: constents.challenges_flags.default
+        },
+        youtubelink: {
+            type: DataTypes.STRING
+        },
+        fpp: {
+            type: DataTypes.STRING
         },
         initiated_by: {
             type: DataTypes.INTEGER,
