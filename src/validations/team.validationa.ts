@@ -18,8 +18,12 @@ export const teamSchema = Joi.object().keys({
     student_email: Joi.string().email(),
     student_mobile: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     reg_no: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
-    id_card:Joi.string(),
-    Gender: Joi.string().valid(...Object.values(constents.gender_flags.list))
+    id_card: Joi.string(),
+    Gender: Joi.string().valid(...Object.values(constents.gender_flags.list)),
+    member_category: Joi.string(),
+    dob: Joi.date(),
+    age: Joi.string(),
+    institution_name: Joi.string()
 
 });
 export const teamUpdateSchema = Joi.object().keys({
@@ -28,6 +32,10 @@ export const teamUpdateSchema = Joi.object().keys({
     student_email: Joi.string().email(),
     student_mobile: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     reg_no: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
-    id_card:Joi.string(),
-    Gender: Joi.string().valid(...Object.values(constents.gender_flags.list))
+    id_card: Joi.string(),
+    Gender: Joi.string().valid(...Object.values(constents.gender_flags.list)),
+    member_category: Joi.string(),
+    dob: Joi.date(),
+    age: Joi.string(),
+    institution_name: Joi.string()
 });

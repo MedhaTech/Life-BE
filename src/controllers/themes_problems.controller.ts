@@ -47,7 +47,7 @@ HAVING COUNT(ideas.theme_problem_id) > 1;
                 where: {
                     status: 'ACTIVE'
                 },
-                order: ['theme_name']
+                order: ['theme_problem_id']
             });
             result.forEach((obj: any) => {
                 response.push(obj.dataValues.theme_name)
