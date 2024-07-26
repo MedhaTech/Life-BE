@@ -38,6 +38,18 @@ team.init(
         id_card: {
             type: DataTypes.STRING
         },
+        member_category: {
+            type: DataTypes.STRING
+        },
+        dob: {
+            type: DataTypes.DATE
+        },
+        age: {
+            type: DataTypes.STRING
+        },
+        institution_name: {
+            type: DataTypes.STRING
+        },
         status: {
             type: DataTypes.ENUM(...Object.values(constents.common_status_flags.list)),
             defaultValue: constents.common_status_flags.default

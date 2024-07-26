@@ -186,6 +186,7 @@ export default class StudentController extends BaseController {
             result.data['district'] = studentDetails.dataValues.district;
             result.data['student_id'] = studentDetails.dataValues.student_id;
             result.data['user_id'] = studentDetails.dataValues.user_id;
+            result.data['id_card'] = studentDetails.dataValues.id_card;
             return res.status(200).send(dispatcher(res, result.data, 'success', speeches.USER_LOGIN_SUCCESS));
         }
     }

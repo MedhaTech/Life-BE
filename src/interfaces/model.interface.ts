@@ -20,6 +20,10 @@ export interface teamAttributes {
     gender: string;
     reg_no: string;
     id_card: string;
+    member_category: string,
+    dob: Date,
+    age: string,
+    institution_name: string,
     status: Enumerator;
     created_by: number;
     created_at: Date;
