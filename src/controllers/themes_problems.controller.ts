@@ -25,7 +25,17 @@ export default class themes_problemsController extends BaseController {
         }
         try {
             let response: any = [];
-            const listofusertheme = await db.query(`SELECT distinct theme_name FROM ideas JOIN themes_problems ON ideas.theme_problem_id = themes_problems.theme_problem_id WHERE initiated_by = ${res.locals.user_id}`, {
+            const listofusertheme = await db.query(`SELECT 
+    themes_problems.theme_name
+FROM
+    ideas
+JOIN
+    themes_problems ON ideas.theme_problem_id = themes_problems.theme_problem_id
+WHERE
+    initiated_by = ${res.locals.user_id}
+GROUP BY ideas.theme_problem_id
+HAVING COUNT(ideas.theme_problem_id) > 1;
+`, {
                 type: QueryTypes.SELECT,
             });
             const listofuserthemearray = await this.authService.convertingObjtoarrofiteams(listofusertheme);
@@ -42,7 +52,7 @@ export default class themes_problemsController extends BaseController {
             result.forEach((obj: any) => {
                 response.push(obj.dataValues.theme_name)
             });
-            response = response.filter((item : any) => !listofuserthemearray.includes(item));
+            response = response.filter((item: any) => !listofuserthemearray.includes(item));
             return res.status(200).send(dispatcher(res, response))
         } catch (err) {
             next(err)
