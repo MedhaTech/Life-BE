@@ -110,15 +110,15 @@ export default class TeamController extends BaseController {
             return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
         }
         try{
-            const { student_email } = req.body;
-            const user_res = await this.crudService.findOne(user, { where: { username: student_email } });
-            const team_res = await this.crudService.findOne(team, { where: { student_email: student_email } });
-            if (user_res) {
-                throw badRequest('Email already exists');
-            }
-            if (team_res) {
-                throw badRequest('Email already exists');
-            }
+            // const { student_email } = req.body;
+            // const user_res = await this.crudService.findOne(user, { where: { username: student_email } });
+            // const team_res = await this.crudService.findOne(team, { where: { student_email: student_email } });
+            // if (user_res) {
+            //     throw badRequest('Email already exists');
+            // }
+            // if (team_res) {
+            //     throw badRequest('Email already exists');
+            // }
             const payload = this.autoFillTrackingColumns(req, res, team);
             const data = await this.crudService.create(team,payload);
             return res.status(201).send(dispatcher(res, data, 'success', 'Student successfully Created', 201));
