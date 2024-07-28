@@ -41,11 +41,11 @@ jobs:
       - name: Deploy to Prod
         if: github.ref == 'refs/heads/master'
         env:
-          PRIVATE_KEY: ${{ secrets.LIFE_PROD_PRIVATE_KEY }}
+          PRIVATE_KEY: ${{ secrets.LIFE__PRIVATE_KEY }}
           HOSTNAME: ${{ secrets.LIFE_PROD_HOSTNAME }}
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key ubuntu@${{secrets.LIFE_PROD_HOSTNAME}} '
+          ssh -v -o StrictHostKeyChecking=no -i private_key ubuntu@${{secrets.LIFE_PROD_HOSTNAME}} '
             cd life_be &&
             sudo git fetch origin &&
             sudo git checkout master &&
