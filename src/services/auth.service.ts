@@ -357,7 +357,7 @@ export default class authService {
                     Data: id === 1 ? verifyOtpSubject : id === 3 ? forgotPassSubjec : fullSubjec
                 }
             },
-            Source: "info@indeas2life.in", /* required */
+            Source: "info@ideas4life.in", /* required */
             // Source: "aim-no-reply@inqui-lab.org", /* required */
             ReplyToAddresses: [],
         };
@@ -431,7 +431,8 @@ export default class authService {
                     Data: subText
                 }
             },
-            Source: "aim-no-reply@inqui-lab.org", /* required */
+            // Source: "aim-no-reply@inqui-lab.org", /* required */
+            Source: "info@ideas4life.in", /* required */
             ReplyToAddresses: [],
         };
         try {
