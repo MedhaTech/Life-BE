@@ -357,20 +357,21 @@ export default class authService {
                     Data: id === 1 ? verifyOtpSubject : id === 3 ? forgotPassSubjec : fullSubjec
                 }
             },
-            Source: "aim-no-reply@inqui-lab.org", /* required */
+            Source: "info@indeas2life.in", /* required */
+            // Source: "aim-no-reply@inqui-lab.org", /* required */
             ReplyToAddresses: [],
         };
         try {
             // Create the promise and SES service object
-            // let sendPromise = new AWS.SES({ apiVersion: '2010-12-01' }).sendEmail(params).promise();
-            // // Handle promise's fulfilled/rejected states
-            // await sendPromise.then((data: any) => {
-            //     result['messageId'] = data.MessageId;
-            //     result['otp'] = otp;
-            // }).catch((err: any) => {
-            //     throw err;
-            // });
-            result['otp'] = 112233;
+            let sendPromise = new AWS.SES({ apiVersion: '2010-12-01' }).sendEmail(params).promise();
+            // Handle promise's fulfilled/rejected states
+            await sendPromise.then((data: any) => {
+                result['messageId'] = data.MessageId;
+                result['otp'] = otp;
+            }).catch((err: any) => {
+                throw err;
+            });
+            // result['otp'] = 112233;
             return result;
         } catch (error) {
             return error;
