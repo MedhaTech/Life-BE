@@ -377,7 +377,7 @@ export default class authService {
             return error;
         }
     }
-    async emailotp(requestBody: any) {
+    async emailOtp(requestBody: any) {
         let result: any = {};
         try {
             const user_data = await this.crudService.findOne(user, { where: { username: requestBody.email } });
