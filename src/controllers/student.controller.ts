@@ -170,6 +170,56 @@ export default class StudentController extends BaseController {
             next(err)
         }
     }
+    private async bulkCreateStudent(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            // if (req.body.length >= constents.TEAMS_MAX_STUDENTS_ALLOWED) {
+            //     throw badRequest(speeches.TEAM_MAX_MEMBES_EXCEEDED);
+            // }
+            // for (let student in req.body) {
+            //     if (!req.body[student].team_id) throw notFound(speeches.USER_TEAMID_REQUIRED);
+            //     const team_id = req.body[student].team_id
+            //     const mentor_id = req.body[student].mentor_id
+            //     if (mentor_id) {
+            //         const countvalue = await db.query(`SELECT count(*) as student_count FROM students join teams on students.team_id = teams.team_id  where mentor_id = ${mentor_id};`, { type: QueryTypes.SELECT });
+            //         const totalValue = Object.values(countvalue[0]).toString()
+            //         if (JSON.parse(totalValue) > 47) {
+            //             throw badRequest(speeches.STUDENT_MAX)
+            //         }
+            //     }
+            //     if (team_id) {
+            //         const teamCanAddMember = await this.authService.checkIfTeamHasPlaceForNewMember(team_id)
+            //         if (!teamCanAddMember) {
+            //             throw badRequest(speeches.TEAM_MAX_MEMBES_EXCEEDED)
+            //         }
+            //         if (teamCanAddMember instanceof Error) {
+            //             throw teamCanAddMember;
+            //         }
+            //     }
+            // }
+            // let cryptoEncryptedString: any;
+            // const teamName = await this.authService.crudService.findOne(team, {
+            //     attributes: ["team_name"], where: { team_id: req.body[0].team_id }
+            // });
+            // if (!teamName) throw notFound(speeches.TEAM_NOT_FOUND, 406);
+            // if (teamName instanceof Error) throw teamName;
+            // for (let student in req.body) {
+            //     cryptoEncryptedString = await this.authService.generateCryptEncryption(req.body[student].username);
+            //     req.body[student].student_full_name = req.body[student].student_full_name.trim();
+            //     req.body[student].full_name = req.body[student].student_full_name.trim();
+            //     req.body[student].financial_year_id = 1;
+            //     req.body[student].role = 'STUDENT';
+            //     req.body[student].password = cryptoEncryptedString;
+            //     req.body[student].created_by = res.locals.user_id
+            //     req.body[student].updated_by = res.locals.user_id
+            // }
+            // const responseFromService = await this.authService.bulkCreateStudentService(req.body);
+            // // if (responseFromService.error) return res.status(406).send(dispatcher(res, responseFromService.error, 'error', speeches.STUDENT_EXISTS, 406));
+            // return res.status(201).send(dispatcher(res, responseFromService, 'success', speeches.USER_REGISTERED_SUCCESSFULLY, 201));
+            res.status(400).send(dispatcher(res, '', 'error', 'Registration has closed', 400));
+        } catch (error) {
+            next(error);
+        }
+    }
     private async login(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
         let studentDetails: any;
         let result;
