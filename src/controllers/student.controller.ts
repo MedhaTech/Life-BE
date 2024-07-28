@@ -277,7 +277,7 @@ export default class StudentController extends BaseController {
             }
             const errs: any = [];
             let attachments: any = [];
-            let payload: any = {};
+            let payload: any = [];
             let result: any = {};
             let s3 = new S3({
                 apiVersion: '2006-03-01',
@@ -316,9 +316,8 @@ export default class StudentController extends BaseController {
                 result['errors'] = errs;
             }
 
-            payload['id_card'] = attachments;
+            payload['id_card'] = attachments[0];
             payload['student_user_id'] = student_user_id;
-            payload['req'] = req;
             result['payload'] = payload;
             // console.log(payload);
             // ["id_card"] = attachments;
