@@ -267,6 +267,8 @@ export default class StudentController extends BaseController {
     protected async handleAttachment(req: Request, res: Response, next: NextFunction) {
         try {
             const rawfiles: any = req.files;
+            const student_user_id: any = req.student_id;
+
             const files: any = Object.values(rawfiles);
             const allowedTypes = ['image/jpeg', 'image/png', 'application/msword', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
             if (!allowedTypes.includes(files[0].type)) {
@@ -311,6 +313,21 @@ export default class StudentController extends BaseController {
                 result['attachments'] = attachments;
                 result['errors'] = errs;
             }
+
+            const payload : any = {"id_card" : attachments} 
+            // ["id_card"] = attachments;
+            // const payload["id_card"] = attachments;
+
+            const updateIdCard = await this.crudService.updateAndFind(student, payload, {
+                where: { student_id: student_user_id }
+            });
+            if (!updateIdCard) {
+                throw internal()
+            }
+            if (updateIdCard instanceof Error) {
+                throw updateIdCard;
+            }
+
             res.status(200).send(dispatcher(res, result));
         } catch (err) {
             next(err)
