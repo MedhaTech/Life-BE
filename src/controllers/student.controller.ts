@@ -380,7 +380,7 @@ export default class StudentController extends BaseController {
             if (!email) {
                 throw badRequest(speeches.USER_EMAIL_REQUIRED);
             }
-            const result = await this.authService.emailotp(req.body);
+            const result = await this.authService.emailOtp(req.body);
             if (result.error) {
                 return res.status(404).send(dispatcher(res, result.error, 'error', result.error));
             } else {
