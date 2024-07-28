@@ -267,7 +267,7 @@ export default class StudentController extends BaseController {
     protected async handleAttachment(req: Request, res: Response, next: NextFunction) {
         try {
             const rawfiles: any = req.files;
-            const student_user_id: any = req.student_id;
+            const student_user_id: any = req.body.student_id;
 
             const files: any = Object.values(rawfiles);
             const allowedTypes = ['image/jpeg', 'image/png', 'application/msword', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
