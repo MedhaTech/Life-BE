@@ -266,6 +266,7 @@ export default class StudentController extends BaseController {
     }
     protected async handleAttachment(req: Request, res: Response, next: NextFunction) {
         try {
+            console.log(req);
             const rawfiles: any = req.files;
             const student_user_id: any = req.body.student_id;
 
@@ -315,6 +316,7 @@ export default class StudentController extends BaseController {
             }
 
             const payload : any = {"id_card" : attachments} 
+            console.log(payload);
             // ["id_card"] = attachments;
             // const payload["id_card"] = attachments;
 
