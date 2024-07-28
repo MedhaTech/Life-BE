@@ -266,6 +266,7 @@ export default class StudentController extends BaseController {
     }
     protected async handleAttachment(req: Request, res: Response, next: NextFunction) {
         try {
+            console.log(req);
             const rawfiles: any = req.files;
             const student_user_id: any = req.body.student_id;
 
@@ -276,6 +277,7 @@ export default class StudentController extends BaseController {
             }
             const errs: any = [];
             let attachments: any = [];
+            let payload: any = [];
             let result: any = {};
             let s3 = new S3({
                 apiVersion: '2006-03-01',
@@ -314,7 +316,10 @@ export default class StudentController extends BaseController {
                 result['errors'] = errs;
             }
 
-            const payload : any = {"id_card" : attachments} 
+            payload['id_card'] = attachments[0];
+            payload['student_user_id'] = student_user_id;
+            result['payload'] = payload;
+            // console.log(payload);
             // ["id_card"] = attachments;
             // const payload["id_card"] = attachments;
 
@@ -375,7 +380,7 @@ export default class StudentController extends BaseController {
             if (!email) {
                 throw badRequest(speeches.USER_EMAIL_REQUIRED);
             }
-            const result = await this.authService.emailotp(req.body);
+            const result = await this.authService.emailOtp(req.body);
             if (result.error) {
                 return res.status(404).send(dispatcher(res, result.error, 'error', result.error));
             } else {
