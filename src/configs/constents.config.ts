@@ -259,6 +259,7 @@ export const constents = {
   },
   TEAMS_MAX_STUDENTS_ALLOWED: 5,
   ALPHA_NUMERIC_PATTERN: /^[a-zA-Z0-9 ]*$/,
+  ALPHA_NUMERIC_PLUS_PATTERN : /^[a-zA-Z0-9 \-()&.,]*$/,
   UNICODE_PATTERN: /^[a-zA-Z\s\u0B80-\u0BFF]+$/,
   ONLY_DIGIT_PATTERN : /^\d+$/,
   certificate_flags: {

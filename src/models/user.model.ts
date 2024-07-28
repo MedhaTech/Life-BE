@@ -2,7 +2,6 @@ import { DataTypes, Model, Attributes, InferAttributes, InferCreationAttributes,
 import bcrypt from 'bcrypt';
 import { constents } from '../configs/constents.config';
 import db from '../utils/dbconnection.util';
-import { notification } from './notification.model';
 import { baseConfig } from '../configs/base.config';
 
 export class user extends Model<InferAttributes<user>, InferCreationAttributes<user>> {
@@ -17,16 +16,6 @@ export class user extends Model<InferAttributes<user>, InferCreationAttributes<u
     declare updated_by: number;
     declare updated_at: Date;
     static modelTableName = "users"
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models: any) {
-        // define association here
-        user.hasMany(notification, { sourceKey: 'notification_id', as: 'notifications' });
-
-    }
 }
 
 user.init(

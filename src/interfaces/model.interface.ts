@@ -13,9 +13,17 @@ export interface courseModuleAttributes {
 
 export interface teamAttributes {
     team_id: number;
-    team_name: string;
-    mentor_id: string;
-    financial_year_id: number;
+    student_id: number;
+    student_name: string;
+    student_email: string;
+    student_mobile: number;
+    gender: string;
+    reg_no: string;
+    id_card: string;
+    member_category: string,
+    dob: Date,
+    age: string,
+    institution_name: string,
     status: Enumerator;
     created_by: number;
     created_at: Date;

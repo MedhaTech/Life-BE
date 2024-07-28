@@ -7,7 +7,7 @@ export class ideas extends Model<InferAttributes<ideas>, InferCreationAttributes
     declare idea_id: CreationOptional<number>;
     declare financial_year_id: number;
     declare theme_problem_id: number;
-    declare team_id: number;
+    declare student_id: number;
     declare idea_title: String;
     declare solution_statement: String;
     declare detailed_solution: string;
@@ -30,6 +30,9 @@ export class ideas extends Model<InferAttributes<ideas>, InferCreationAttributes
     declare rejected_reason: String;
     declare final_result: Enumerator;
     declare district: String;
+    declare state: String;
+    declare youtubelink: String;
+    declare fpp: String;
 }
 
 ideas.init(
@@ -47,7 +50,7 @@ ideas.init(
             type: DataTypes.INTEGER,
             allowNull: true
         },
-        team_id: {
+        student_id: {
             type: DataTypes.INTEGER,
             allowNull: false
         },
@@ -83,6 +86,12 @@ ideas.init(
             type: DataTypes.ENUM(...Object.values(constents.challenges_flags.list)),
             allowNull: false,
             defaultValue: constents.challenges_flags.default
+        },
+        youtubelink: {
+            type: DataTypes.STRING
+        },
+        fpp: {
+            type: DataTypes.STRING
         },
         initiated_by: {
             type: DataTypes.INTEGER,
@@ -143,6 +152,10 @@ ideas.init(
             allowNull: true,
         },
         district: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        state: {
             type: DataTypes.STRING,
             allowNull: true,
         }

@@ -793,7 +793,6 @@ CREATE TABLE `supported_languages` (
 
 CREATE TABLE `teams` (
   `team_id` int NOT NULL AUTO_INCREMENT,
-  `team_name` varchar(255) NOT NULL,
   `mentor_id` int DEFAULT NULL,
   `status` enum('ACTIVE','INACTIVE','DELETED','LOCKED') DEFAULT 'ACTIVE',
   `created_by` int DEFAULT NULL,

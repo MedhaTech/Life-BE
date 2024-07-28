@@ -2,39 +2,32 @@ import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOpt
 import bcrypt from 'bcrypt';
 import { constents } from '../configs/constents.config';
 import db from '../utils/dbconnection.util';
-import { notification } from './notification.model';
 import { baseConfig } from '../configs/base.config';
 import { user } from './user.model';
-import { institutional_courses } from './institutional_courses.model';
 
 export class student extends Model<InferAttributes<student>, InferCreationAttributes<student>> {
     declare student_id: CreationOptional<number>;
-    declare institution_course_id: number;
-    declare year_of_study: number;
-    declare financial_year_id: number;
     declare user_id: number;
-    declare team_id: number;
     declare student_full_name: string;
     declare date_of_birth: Date;
     declare mobile: string;
     declare email: string;
     declare Gender: string;
     declare Age: number;
+    declare year_of_study: string;
+    declare group: string;
+    declare institution_name: string;
+    declare state: string;
+    declare district: string;
+    declare city: string;
+    declare reg_no: string;
+    declare id_card: string;
     declare certificate_issued: Date;
     declare status: Enumerator;
     declare created_by: number;
     declare created_at: Date;
     declare updated_by: number;
     declare updated_at: Date;
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models: any) {
-        // define association here
-        student.hasMany(notification, { sourceKey: 'notification_id', as: 'notifications' });
-    }
 }
 
 student.init(
@@ -44,21 +37,9 @@ student.init(
             autoIncrement: true,
             primaryKey: true,
         },
-        institution_course_id: {
-            type: DataTypes.INTEGER
-        },
-        year_of_study: {
-            type: DataTypes.INTEGER
-        },
-        financial_year_id: {
-            type: DataTypes.INTEGER
-        },
         user_id: {
             type: DataTypes.INTEGER,
             allowNull: false
-        },
-        team_id: {
-            type: DataTypes.INTEGER
         },
         student_full_name: {
             type: DataTypes.STRING,
@@ -83,6 +64,30 @@ student.init(
         Age: {
             type: DataTypes.INTEGER,
             allowNull: true
+        },
+        institution_name: {
+            type: DataTypes.STRING
+        },
+        state: {
+            type: DataTypes.STRING
+        },
+        group: {
+            type: DataTypes.STRING
+        },
+        year_of_study: {
+            type: DataTypes.STRING
+        },
+        district: {
+            type: DataTypes.STRING
+        },
+        city: {
+            type: DataTypes.STRING
+        },
+        reg_no: {
+            type: DataTypes.STRING
+        },
+        id_card: {
+            type: DataTypes.STRING
         },
         certificate_issued: {
             type: DataTypes.DATE,
@@ -136,11 +141,7 @@ student.init(
     }
 );
 
-// student.belongsTo(user, { foreignKey: 'user_id', constraints: false });
-// user.hasOne(student, { foreignKey: 'user_id', constraints: false, scope: { role: 'STUDENT' } });
 student.belongsTo(user, { foreignKey: 'user_id' });
 user.hasMany(student, { foreignKey: 'user_id' });
 student.belongsTo(user, { foreignKey: 'user_id' });
 user.hasMany(student, { foreignKey: 'user_id' });
-student.belongsTo(institutional_courses, {targetKey: 'institution_course_id',foreignKey: 'institution_course_id', constraints: false });
-institutional_courses.hasOne(student, { sourceKey: 'institution_course_id', foreignKey: 'institution_course_id', constraints: false });

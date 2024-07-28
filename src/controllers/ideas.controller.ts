@@ -23,12 +23,11 @@ export default class ideasController extends BaseController {
         this.path = '/ideas';
     }
     protected initializeRoutes(): void {
-        this.router.post(this.path + "/test", this.initiateIdeaop.bind(this));
         this.router.post(this.path + "/initiate", this.initiateIdea.bind(this));
         this.router.put(this.path + "/ideaUpdate", this.UpdateIdea.bind(this));
         this.router.get(this.path + '/submittedDetails', this.getResponse.bind(this));
         this.router.post(this.path + "/fileUpload", this.handleAttachment.bind(this));
-        this.router.get(`${this.path}/ideastatusbyteamId`, this.getideastatusbyteamid.bind(this));
+        // this.router.get(`${this.path}/ideastatusbyteamId`, this.getideastatusbyteamid.bind(this));
         this.router.get(this.path + '/fetchRandomChallenge', this.getRandomChallenge.bind(this));
         this.router.get(`${this.path}/evaluated/:evaluator_id`, this.getChallengesForEvaluator.bind(this))
         this.router.get(`${this.path}/finalEvaluation/`, this.finalEvaluation.bind(this));
@@ -46,7 +45,7 @@ export default class ideasController extends BaseController {
         } else if (Object.keys(req.query).length !== 0) {
             return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
         }
-        let { team_id } = newREQQuery;
+        let { student_id } = newREQQuery;
         if (!user_id) {
             throw unauthorized(speeches.UNAUTHORIZED_ACCESS)
         }
@@ -69,8 +68,8 @@ export default class ideasController extends BaseController {
         // pagination
         const { page, size, title } = newREQQuery;
         let condition: any = {};
-        if (team_id) {
-            condition = { team_id };
+        if (student_id) {
+            condition = { student_id };
         }
         const { limit, offset } = this.getPagination(page, size);
         const modelClass = await this.loadModel(model).catch(error => {
@@ -132,9 +131,8 @@ export default class ideasController extends BaseController {
                             data = await this.crudService.findOne(ideas, {
                                 attributes: [
                                     "idea_id",
-                                    "financial_year_id",
                                     "theme_problem_id",
-                                    "team_id",
+                                    "student_id",
                                     "idea_title",
                                     "solution_statement",
                                     "detailed_solution",
@@ -159,15 +157,6 @@ export default class ideasController extends BaseController {
                                     ],
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT team_name FROM teams As t WHERE t.team_id =  \`ideas\`.\`team_id\` )`), 'team_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_code'
                                     ]
                                 ],
                                 where: {
@@ -192,9 +181,8 @@ export default class ideasController extends BaseController {
                             data = await this.crudService.findOne(ideas, {
                                 attributes: [
                                     "idea_id",
-                                    "financial_year_id",
                                     "theme_problem_id",
-                                    "team_id",
+                                    "student_id",
                                     "idea_title",
                                     "solution_statement",
                                     "detailed_solution",
@@ -219,15 +207,6 @@ export default class ideasController extends BaseController {
                                     ],
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT team_name FROM teams As t WHERE t.team_id =  \`ideas\`.\`team_id\` )`), 'team_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_code'
                                     ]
                                 ],
                                 where: {
@@ -278,9 +257,8 @@ export default class ideasController extends BaseController {
                 data = await this.crudService.findOne(ideas, {
                     attributes: [
                         "idea_id",
-                        "financial_year_id",
                         "theme_problem_id",
-                        "team_id",
+                        "student_id",
                         "idea_title",
                         "solution_statement",
                         "detailed_solution",
@@ -300,13 +278,7 @@ export default class ideasController extends BaseController {
                         "evaluated_at",
                         [
                             db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
-                        ],
-                        [
-                            db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_code'
-                        ],
-                        [
-                            db.literal(`(SELECT team_name FROM teams As t WHERE t.team_id =  \`ideas\`.\`team_id\` )`), 'team_name'
-                        ],
+                        ]
                     ],
                     where: {
                         [Op.and]: [
@@ -349,7 +321,7 @@ export default class ideasController extends BaseController {
                                     "idea_id",
                                     "financial_year_id",
                                     "theme_problem_id",
-                                    "team_id",
+                                    "student_id",
                                     "idea_title",
                                     "solution_statement",
                                     "detailed_solution",
@@ -374,42 +346,6 @@ export default class ideasController extends BaseController {
                                     ],
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT team_name FROM teams As t WHERE t.team_id =  \`ideas\`.\`team_id\` )`), 'team_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_code'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.team_id = t.team_id WHERE t.team_id = \`ideas\`.\`team_id\` )`), 'team_members'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_mobile'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_email FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_email'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_whatsapp_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_whatsapp_mobile'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT place_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id where t.team_id = \`ideas\`.\`team_id\`)`), 'place_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT block_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join blocks as b on p.block_id = b.block_id where t.team_id = \`ideas\`.\`team_id\`)`), 'block_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT taluk_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join taluks as ta on p.taluk_id = ta.taluk_id where t.team_id = \`ideas\`.\`team_id\`)`), 'taluk_name'
                                     ]
                                 ],
                                 include: {
@@ -459,7 +395,7 @@ export default class ideasController extends BaseController {
                                     "idea_id",
                                     "financial_year_id",
                                     "theme_problem_id",
-                                    "team_id",
+                                    "student_id",
                                     "idea_title",
                                     "solution_statement",
                                     "detailed_solution",
@@ -485,42 +421,6 @@ export default class ideasController extends BaseController {
                                     ],
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT team_name FROM teams As t WHERE t.team_id =  \`ideas\`.\`team_id\` )`), 'team_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_code'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.team_id = t.team_id WHERE t.team_id = \`ideas\`.\`team_id\` )`), 'team_members'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT institution_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_mobile'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_email FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_email'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT principal_whatsapp_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_whatsapp_mobile'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT place_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id where t.team_id = \`ideas\`.\`team_id\`)`), 'place_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT block_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join blocks as b on p.block_id = b.block_id where t.team_id = \`ideas\`.\`team_id\`)`), 'block_name'
-                                    ],
-                                    [
-                                        db.literal(`(SELECT taluk_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join taluks as ta on p.taluk_id = ta.taluk_id where t.team_id = \`ideas\`.\`team_id\`)`), 'taluk_name'
                                     ]
                                 ],
                                 where: {
@@ -604,7 +504,7 @@ export default class ideasController extends BaseController {
                             "idea_id",
                             "financial_year_id",
                             "theme_problem_id",
-                            "team_id",
+                            "student_id",
                             "idea_title",
                             "solution_statement",
                             "detailed_solution",
@@ -626,43 +526,7 @@ export default class ideasController extends BaseController {
                                 db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                             ],
                             [
-                                db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_code'
-                            ],
-                            [
-                                db.literal(`(SELECT team_name FROM teams As t WHERE t.team_id =  \`ideas\`.\`team_id\` )`), 'team_name'
-                            ],
-                            [
                                 db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                            ],
-                            [
-                                db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                            ],
-                            [
-                                db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.team_id = t.team_id WHERE t.team_id = \`ideas\`.\`team_id\` )`), 'team_members'
-                            ],
-                            [
-                                db.literal(`(SELECT institution_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_name'
-                            ],
-                            [
-                                db.literal(`(SELECT principal_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_name'
-                            ],
-                            [
-                                db.literal(`(SELECT principal_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_mobile'
-                            ],
-                            [
-                                db.literal(`(SELECT principal_email FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_email'
-                            ],
-                            [
-                                db.literal(`(SELECT principal_whatsapp_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_whatsapp_mobile'
-                            ],
-                            [
-                                db.literal(`(SELECT place_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id where t.team_id = \`ideas\`.\`team_id\`)`), 'place_name'
-                            ],
-                            [
-                                db.literal(`(SELECT block_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join blocks as b on p.block_id = b.block_id where t.team_id = \`ideas\`.\`team_id\`)`), 'block_name'
-                            ],
-                            [
-                                db.literal(`(SELECT taluk_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join taluks as ta on p.taluk_id = ta.taluk_id where t.team_id = \`ideas\`.\`team_id\`)`), 'taluk_name'
                             ]
                         ],
                         include: {
@@ -703,28 +567,36 @@ export default class ideasController extends BaseController {
         }
         return res.status(200).send(dispatcher(res, data, 'success'));
     };
-    protected async initiateIdeaop(req: Request, res: Response, next: NextFunction) {
-        // if(res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT' ){
-        //     return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
-        // }
-        try {
-            const attachmentsCopyResult = await this.copyAllFiles(req, null, "ideas", "test");
-            console.log(attachmentsCopyResult.attachments);
-            res.status(200).send(dispatcher(res, attachmentsCopyResult))
-        } catch (err) {
-            next(err)
-        }
-    }
     protected async initiateIdea(req: Request, res: Response, next: NextFunction) {
         if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
-            const { team_id } = req.body;
-            if (!team_id) {
+            const { student_id, problem_statement_id } = req.body;
+            if (!student_id) {
                 throw unauthorized(speeches.USER_TEAMID_REQUIRED)
             }
             req.body['financial_year_id'] = 1;
+
+            var dataBodyforThemes = { ...req.body };
+            dataBodyforThemes['status'] = 'MANUAL'
+            if (problem_statement_id) {
+                if (problem_statement_id === 0 || problem_statement_id === '0') {
+                    let result: any = await this.crudService.create(themes_problems, dataBodyforThemes);
+                    req.body['theme_problem_id'] = result.dataValues.theme_problem_id;
+                } else {
+                    const where: any = {};
+                    where[`theme_problem_id`] = problem_statement_id;
+                    where[`status`] = 'MANUAL';
+                    const finsThemeStatus: any = await this.crudService.findOne(themes_problems, { where: { 'theme_problem_id': problem_statement_id } })
+
+                    if (finsThemeStatus.dataValues.status === 'MANUAL') {
+                        let result: any = await this.crudService.update(themes_problems, dataBodyforThemes, { where: where });
+                    }
+                    req.body['theme_problem_id'] = problem_statement_id;
+                }
+            }
+
             let result: any = await this.crudService.create(ideas, req.body);
             if (!result) {
                 throw badRequest(speeches.INVALID_DATA);
@@ -733,7 +605,7 @@ export default class ideasController extends BaseController {
                 throw result;
             }
             res.status(200).send(dispatcher(res, result))
-           // res.status(400).send(dispatcher(res, '', 'error', 'idea initiation is closed', 400));
+            // res.status(400).send(dispatcher(res, '', 'error', 'idea initiation is closed', 400));
         } catch (err) {
             next(err)
         }
@@ -743,9 +615,12 @@ export default class ideasController extends BaseController {
             return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
-            const { team_id, problem_statement_id, status, initiated_by } = req.body;
-            if (!team_id) {
+            const { student_id, problem_statement_id, status, initiated_by, idea_id } = req.body;
+            if (!student_id) {
                 throw unauthorized(speeches.USER_TEAMID_REQUIRED)
+            }
+            if (!idea_id) {
+                throw unauthorized(speeches.USER_IDEAID_REQUIRED)
             }
             var dataBodyforThemes = { ...req.body };
             dataBodyforThemes['status'] = 'MANUAL'
@@ -779,7 +654,7 @@ export default class ideasController extends BaseController {
             }
             const where: any = {};
             const valuebody = req.body;
-            where[`team_id`] = team_id;
+            where[`idea_id`] = idea_id;
             let result: any = await this.crudService.update(ideas, valuebody, { where: where });
             return res.status(200).send(dispatcher(res, result, 'updated'));
         } catch (err) {
@@ -798,29 +673,26 @@ export default class ideasController extends BaseController {
             } else if (Object.keys(req.query).length !== 0) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
             }
-            let { team_id } = newREQQuery;
-            if (!team_id) {
+            let { student_id } = newREQQuery;
+            if (!student_id) {
                 throw unauthorized(speeches.USER_TEAMID_REQUIRED)
             }
             let data: any;
             const { id } = req.params;
 
             let condition: any = {};
-            if (team_id) {
-                condition.team_id = team_id
+            if (student_id) {
+                condition.student_id = student_id
             }
-            data = await this.crudService.findOne(ideas, {
+            data = await this.crudService.findAll(ideas, {
                 attributes: [
                     [
                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
                     ],
-                    [
-                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                    ],
                     "idea_id",
                     "financial_year_id",
                     "theme_problem_id",
-                    "team_id",
+                    "student_id",
                     "idea_title",
                     "solution_statement",
                     "detailed_solution",
@@ -875,7 +747,7 @@ export default class ideasController extends BaseController {
             } else if (Object.keys(req.query).length !== 0) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
             }
-            const { team_id } = newREQQuery;
+            const { student_id } = newREQQuery;
             const rawfiles: any = req.files;
             const files: any = Object.values(rawfiles);
             const allowedTypes = [
@@ -889,40 +761,30 @@ export default class ideasController extends BaseController {
             if (!allowedTypes.includes(files[0].type)) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'This file type not allowed', 400));
             }
-            if (files[0].name.match(/\.exe/)){
-                return res.status(400).send(dispatcher(res,'','error','This file type not allowed',400));
+            if (files[0].name.match(/\.exe/)) {
+                return res.status(400).send(dispatcher(res, '', 'error', 'This file type not allowed', 400));
             }
             const errs: any = [];
             let attachments: any = [];
             let result: any = {};
             let proxyAgent = new HttpsProxyAgent('http://10.236.241.101:9191');
             let s3
-            if (process.env.ISAWSSERVER === 'YES') {
-                s3 = new S3({
-                    apiVersion: '2006-03-01',
-                    region: process.env.AWS_REGION,
-                    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-                    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-                });
-            } else {
-                s3 = new S3({
-                    apiVersion: '2006-03-01',
-                    region: process.env.AWS_REGION,
-                    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-                    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-                    httpOptions: { agent: proxyAgent }
-                });
-            }
+            s3 = new S3({
+                apiVersion: '2006-03-01',
+                region: process.env.AWS_REGION,
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+            });
             if (!req.files) {
                 return result;
             }
             let file_name_prefix: any;
             if (process.env.DB_HOST?.includes("stage")) {
-                file_name_prefix = `ideas/stage/${team_id}`
+                file_name_prefix = `ideas/stage/${student_id}`
             } else if (process.env.DB_HOST?.includes("dev")) {
-                file_name_prefix = `ideas/dev/${team_id}`
+                file_name_prefix = `ideas/dev/${student_id}`
             } else {
-                file_name_prefix = `ideas/prod/${team_id}`
+                file_name_prefix = `ideas/prod/${student_id}`
             }
             for (const file_name of Object.keys(files)) {
                 const file = files[file_name];
@@ -960,8 +822,8 @@ export default class ideasController extends BaseController {
             } else if (Object.keys(req.query).length !== 0) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
             }
-            const teamId = newREQQuery.team_id;
-            const result = await db.query(`select  ifnull((select status  FROM ideas where team_id = ${teamId}),'No Idea')ideaStatus`, { type: QueryTypes.SELECT });
+            const teamId = newREQQuery.student_id;
+            const result = await db.query(`select  ifnull((select status  FROM ideas where student_id = ${teamId}),'No Idea')ideaStatus`, { type: QueryTypes.SELECT });
             res.status(200).send(dispatcher(res, result, "success"))
         } catch (error) {
             next(error);
@@ -1018,7 +880,7 @@ export default class ideasController extends BaseController {
                             "idea_id",
                             "financial_year_id",
                             "theme_problem_id",
-                            "team_id",
+                            "student_id",
                             "idea_title",
                             "solution_statement",
                             "detailed_solution",
@@ -1082,9 +944,9 @@ export default class ideasController extends BaseController {
                         let districts = activeDistrict.dataValues.district;
                         if (districts !== null) {
                             let districtsArray = districts.replace(/,/g, "','")
-                            challengeResponse = await db.query("SELECT theme_name,problem_statement,problem_statement_description,ideas.idea_id, ideas.theme_problem_id, ideas.idea_title, ideas.team_id, ideas.solution_statement, ideas.detailed_solution, ideas.prototype_available, ideas.Prototype_file, ideas.idea_available, ideas.self_declaration, ideas.initiated_by, ideas.created_at, ideas.submitted_at, ideas.status, ideas.district, ideas.verified_by, (SELECT COUNT(*) FROM ideas AS idea WHERE idea.evaluation_status = 'SELECTEDROUND1') AS 'overAllIdeas', (SELECT COUNT(*) - SUM(CASE WHEN FIND_IN_SET('" + evaluator_user_id.toString() + "', evals) > 0 THEN 1 ELSE 0 END) FROM l1_accepted WHERE l1_accepted.district IN ('" + districtsArray + "')) AS 'openIdeas', (SELECT COUNT(*) FROM evaluator_ratings AS A WHERE A.evaluator_id = '" + evaluator_user_id.toString() + "') AS 'evaluatedIdeas' FROM l1_accepted AS l1_accepted LEFT OUTER JOIN ideas ON l1_accepted.idea_id = ideas.idea_id left join themes_problems as the on ideas.theme_problem_id = the.theme_problem_id WHERE l1_accepted.district IN ('" + districtsArray + "') AND NOT FIND_IN_SET('" + evaluator_user_id.toString() + "', l1_accepted.evals) ORDER BY RAND() LIMIT 1", { type: QueryTypes.SELECT });
+                            challengeResponse = await db.query("SELECT theme_name,problem_statement,problem_statement_description,ideas.idea_id, ideas.theme_problem_id, ideas.idea_title, ideas.student_id, ideas.solution_statement, ideas.detailed_solution, ideas.prototype_available, ideas.Prototype_file, ideas.idea_available, ideas.self_declaration, ideas.initiated_by, ideas.created_at, ideas.submitted_at, ideas.status, ideas.district, ideas.verified_by, (SELECT COUNT(*) FROM ideas AS idea WHERE idea.evaluation_status = 'SELECTEDROUND1') AS 'overAllIdeas', (SELECT COUNT(*) - SUM(CASE WHEN FIND_IN_SET('" + evaluator_user_id.toString() + "', evals) > 0 THEN 1 ELSE 0 END) FROM l1_accepted WHERE l1_accepted.district IN ('" + districtsArray + "')) AS 'openIdeas', (SELECT COUNT(*) FROM evaluator_ratings AS A WHERE A.evaluator_id = '" + evaluator_user_id.toString() + "') AS 'evaluatedIdeas' FROM l1_accepted AS l1_accepted LEFT OUTER JOIN ideas ON l1_accepted.idea_id = ideas.idea_id left join themes_problems as the on ideas.theme_problem_id = the.theme_problem_id WHERE l1_accepted.district IN ('" + districtsArray + "') AND NOT FIND_IN_SET('" + evaluator_user_id.toString() + "', l1_accepted.evals) ORDER BY RAND() LIMIT 1", { type: QueryTypes.SELECT });
                         } else {
-                            challengeResponse = await db.query(`SELECT theme_name,problem_statement,problem_statement_description,ideas.idea_id, ideas.theme_problem_id, ideas.idea_title, ideas.team_id, ideas.solution_statement, ideas.detailed_solution, ideas.prototype_available, ideas.Prototype_file, ideas.idea_available, ideas.self_declaration, ideas.initiated_by, ideas.created_at, ideas.submitted_at, ideas.status, ideas.district, ideas.verified_by, (SELECT COUNT(*) FROM ideas AS idea WHERE idea.evaluation_status = 'SELECTEDROUND1') AS 'overAllIdeas', (SELECT COUNT(*) - SUM(CASE WHEN FIND_IN_SET(${evaluator_user_id.toString()}, evals) > 0 THEN 1 ELSE 0 END) FROM l1_accepted) AS 'openIdeas', (SELECT COUNT(*) FROM evaluator_ratings AS A WHERE A.evaluator_id = ${evaluator_user_id.toString()}) AS 'evaluatedIdeas' FROM l1_accepted AS l1_accepted LEFT OUTER JOIN ideas ON l1_accepted.idea_id = ideas.idea_id left join themes_problems as the on ideas.theme_problem_id = the.theme_problem_id WHERE NOT FIND_IN_SET(${evaluator_user_id.toString()}, l1_accepted.evals) ORDER BY RAND() LIMIT 1`, { type: QueryTypes.SELECT });
+                            challengeResponse = await db.query(`SELECT theme_name,problem_statement,problem_statement_description,ideas.idea_id, ideas.theme_problem_id, ideas.idea_title, ideas.student_id, ideas.solution_statement, ideas.detailed_solution, ideas.prototype_available, ideas.Prototype_file, ideas.idea_available, ideas.self_declaration, ideas.initiated_by, ideas.created_at, ideas.submitted_at, ideas.status, ideas.district, ideas.verified_by, (SELECT COUNT(*) FROM ideas AS idea WHERE idea.evaluation_status = 'SELECTEDROUND1') AS 'overAllIdeas', (SELECT COUNT(*) - SUM(CASE WHEN FIND_IN_SET(${evaluator_user_id.toString()}, evals) > 0 THEN 1 ELSE 0 END) FROM l1_accepted) AS 'openIdeas', (SELECT COUNT(*) FROM evaluator_ratings AS A WHERE A.evaluator_id = ${evaluator_user_id.toString()}) AS 'evaluatedIdeas' FROM l1_accepted AS l1_accepted LEFT OUTER JOIN ideas ON l1_accepted.idea_id = ideas.idea_id left join themes_problems as the on ideas.theme_problem_id = the.theme_problem_id WHERE NOT FIND_IN_SET(${evaluator_user_id.toString()}, l1_accepted.evals) ORDER BY RAND() LIMIT 1`, { type: QueryTypes.SELECT });
                         }
                         const evaluatedIdeas = await db.query(`SELECT COUNT(*) as evaluatedIdeas FROM evaluator_ratings AS A WHERE A.evaluator_id = ${evaluator_user_id.toString()}`, { type: QueryTypes.SELECT })
                         let throwMessage = {
@@ -1155,7 +1017,7 @@ export default class ideasController extends BaseController {
                                 "idea_id",
                                 "financial_year_id",
                                 "theme_problem_id",
-                                "team_id",
+                                "student_id",
                                 "idea_title",
                                 "solution_statement",
                                 "detailed_solution",
@@ -1183,20 +1045,20 @@ export default class ideasController extends BaseController {
                                 [
                                     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                 ],
-                                [
-                                    db.literal(`(SELECT team_name FROM teams As t WHERE t.team_id =  \`ideas\`.\`team_id\` )`), 'team_name'
-                                ]
                                 // [
-                                //     db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.team_id = t.team_id WHERE t.team_id = \`ideas\`.\`team_id\` )`), 'team_members'
+                                //     db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
                                 // ]
                                 // [
-                                //     db.literal(`(SELECT mentorTeamOrg.organization_name FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.team_id = team.team_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id LEFT OUTER JOIN organizations AS mentorTeamOrg ON mentorTeam.organization_code = mentorTeamOrg.organization_code WHERE challenge_responses.team_id =  \`challenge_response\`.\`team_id\` GROUP BY challenge_response.team_id)`), 'organization_name'
+                                //     db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
+                                // ]
+                                // [
+                                //     db.literal(`(SELECT mentorTeamOrg.organization_name FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.student_id = team.student_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id LEFT OUTER JOIN organizations AS mentorTeamOrg ON mentorTeam.organization_code = mentorTeamOrg.organization_code WHERE challenge_responses.student_id =  \`challenge_response\`.\`student_id\` GROUP BY challenge_response.student_id)`), 'organization_name'
                                 // ],
                                 // [
-                                //     db.literal(`(SELECT mentorTeamOrg.organization_code FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.team_id = team.team_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id LEFT OUTER JOIN organizations AS mentorTeamOrg ON mentorTeam.organization_code = mentorTeamOrg.organization_code WHERE challenge_responses.team_id = \`challenge_response\`.\`team_id\` GROUP BY challenge_response.team_id)`), 'organization_code'
+                                //     db.literal(`(SELECT mentorTeamOrg.organization_code FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.student_id = team.student_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id LEFT OUTER JOIN organizations AS mentorTeamOrg ON mentorTeam.organization_code = mentorTeamOrg.organization_code WHERE challenge_responses.student_id = \`challenge_response\`.\`student_id\` GROUP BY challenge_response.student_id)`), 'organization_code'
                                 // ],
                                 // [
-                                //     db.literal(`(SELECT full_name FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.team_id = team.team_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id WHERE challenge_responses.team_id = \`challenge_response\`.\`team_id\` GROUP BY challenge_response.team_id)`), 'mentor_name'
+                                //     db.literal(`(SELECT full_name FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.student_id = team.student_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id WHERE challenge_responses.student_id = \`challenge_response\`.\`student_id\` GROUP BY challenge_response.student_id)`), 'mentor_name'
                                 // ]
                             ],
                             include: {
@@ -1223,7 +1085,7 @@ export default class ideasController extends BaseController {
                                 "idea_id",
                                 "financial_year_id",
                                 "theme_problem_id",
-                                "team_id",
+                                "student_id",
                                 "idea_title",
                                 "solution_statement",
                                 "detailed_solution",
@@ -1250,20 +1112,20 @@ export default class ideasController extends BaseController {
                                 [
                                     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                 ],
-                                [
-                                    db.literal(`(SELECT team_name FROM teams As t WHERE t.team_id =  \`ideas\`.\`team_id\` )`), 'team_name'
-                                ]
                                 // [
-                                //     db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.team_id = t.team_id WHERE t.team_id = \`ideas\`.\`team_id\` )`), 'team_members'
+                                //     db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
                                 // ]
                                 // [
-                                //     db.literal(`(SELECT mentorTeamOrg.organization_name FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.team_id = team.team_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id LEFT OUTER JOIN organizations AS mentorTeamOrg ON mentorTeam.organization_code = mentorTeamOrg.organization_code WHERE challenge_responses.team_id =  \`challenge_response\`.\`team_id\` GROUP BY challenge_response.team_id)`), 'organization_name'
+                                //     db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
+                                // ]
+                                // [
+                                //     db.literal(`(SELECT mentorTeamOrg.organization_name FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.student_id = team.student_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id LEFT OUTER JOIN organizations AS mentorTeamOrg ON mentorTeam.organization_code = mentorTeamOrg.organization_code WHERE challenge_responses.student_id =  \`challenge_response\`.\`student_id\` GROUP BY challenge_response.student_id)`), 'organization_name'
                                 // ],
                                 // [
-                                //     db.literal(`(SELECT mentorTeamOrg.organization_code FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.team_id = team.team_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id LEFT OUTER JOIN organizations AS mentorTeamOrg ON mentorTeam.organization_code = mentorTeamOrg.organization_code WHERE challenge_responses.team_id = \`challenge_response\`.\`team_id\` GROUP BY challenge_response.team_id)`), 'organization_code'
+                                //     db.literal(`(SELECT mentorTeamOrg.organization_code FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.student_id = team.student_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id LEFT OUTER JOIN organizations AS mentorTeamOrg ON mentorTeam.organization_code = mentorTeamOrg.organization_code WHERE challenge_responses.student_id = \`challenge_response\`.\`student_id\` GROUP BY challenge_response.student_id)`), 'organization_code'
                                 // ],
                                 // [
-                                //     db.literal(`(SELECT full_name FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.team_id = team.team_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id WHERE challenge_responses.team_id = \`challenge_response\`.\`team_id\` GROUP BY challenge_response.team_id)`), 'mentor_name'
+                                //     db.literal(`(SELECT full_name FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.student_id = team.student_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id WHERE challenge_responses.student_id = \`challenge_response\`.\`student_id\` GROUP BY challenge_response.student_id)`), 'mentor_name'
                                 // ]
                             ],
                             where: {
@@ -1379,7 +1241,7 @@ export default class ideasController extends BaseController {
                     "idea_id",
                     "financial_year_id",
                     "theme_problem_id",
-                    "team_id",
+                    "student_id",
                     "idea_title",
                     "solution_statement",
                     "detailed_solution",
@@ -1405,42 +1267,6 @@ export default class ideasController extends BaseController {
                     ],
                     [
                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`initiated_by\` )`), 'initiated_name'
-                    ],
-                    [
-                        db.literal(`(SELECT team_name FROM teams As t WHERE t.team_id =  \`ideas\`.\`team_id\` )`), 'team_name'
-                    ],
-                    [
-                        db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`verified_by\` )`), 'verified_name'
-                    ],
-                    [
-                        db.literal(`(SELECT institution_code FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_code'
-                    ],
-                    [
-                        db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.team_id = t.team_id WHERE t.team_id = \`ideas\`.\`team_id\` )`), 'team_members'
-                    ],
-                    [
-                        db.literal(`(SELECT institution_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'institution_name'
-                    ],
-                    [
-                        db.literal(`(SELECT principal_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_name'
-                    ],
-                    [
-                        db.literal(`(SELECT principal_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_mobile'
-                    ],
-                    [
-                        db.literal(`(SELECT principal_email FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_email'
-                    ],
-                    [
-                        db.literal(`(SELECT principal_whatsapp_mobile FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id where t.team_id = \`ideas\`.\`team_id\`)`), 'principal_whatsapp_mobile'
-                    ],
-                    [
-                        db.literal(`(SELECT place_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id where t.team_id = \`ideas\`.\`team_id\`)`), 'place_name'
-                    ],
-                    [
-                        db.literal(`(SELECT block_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join blocks as b on p.block_id = b.block_id where t.team_id = \`ideas\`.\`team_id\`)`), 'block_name'
-                    ],
-                    [
-                        db.literal(`(SELECT taluk_name FROM teams AS t JOIN mentors AS m ON t.mentor_id = m.mentor_id JOIN institutions AS ins ON m.institution_id = ins.institution_id join places as p on ins.place_id = p.place_id join taluks as ta on p.taluk_id = ta.taluk_id where t.team_id = \`ideas\`.\`team_id\`)`), 'taluk_name'
                     ]
                 ],
                 where: {

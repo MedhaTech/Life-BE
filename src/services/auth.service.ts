@@ -667,4 +667,4 @@ export default class authService {
             return error;
         }
     }
-                }
+}
