@@ -299,7 +299,7 @@ export default class authService {
         const result: any = {}
         const otp: any = Math.random().toFixed(6).substr(-6);
         const verifyOtpdata = `<body style="border: solid;margin-right: 15%;margin-left: 15%; ">
-        <img src="https://aim-email-images.s3.ap-south-1.amazonaws.com/ATL-Marathon-Banner-1000X450px.jpg" alt="header" style="width: 100%;" />
+        <img src="https://email-life.s3.ap-south-1.amazonaws.com/Ideas4Life-Email.png" alt="header" style="width: 100%;" />
         <div style="padding: 1% 5%;">
         <h3>Dear Applicant,</h3>
 
@@ -318,7 +318,7 @@ export default class authService {
         </div></body>`
         const forgotPassData = `
         <body style="border: solid;margin-right: 15%;margin-left: 15%; ">
-        <img src="https://aim-email-images.s3.ap-south-1.amazonaws.com/ATL-Marathon-Banner-1000X450px.jpg" alt="header" style="width: 100%;" />
+        <img src="https://email-life.s3.ap-south-1.amazonaws.com/Ideas4Life-Email.png" alt="header" style="width: 100%;" />
         <div style="padding: 1% 5%;">
         <h3>Dear Guide Teacher,</h3>
         <p>Your temporary password to login to ATL Marathon platform is <b>${otp}.</b></p>
@@ -498,7 +498,7 @@ export default class authService {
             let word = myArray[0];
             const WelcomeTemp = `
             <body style="border: solid;margin-right: 15%;margin-left: 15%; ">
-            <img src="https://aim-email-images.s3.ap-south-1.amazonaws.com/ATL-Marathon-Banner-1000X450px.jpg" alt="header" style="width: 100%;" />
+            <img src="https://email-life.s3.ap-south-1.amazonaws.com/Ideas4Life-Email.png" alt="header" style="width: 100%;" />
             <div style="padding: 1% 5%;">
             <h3>Dear Guide Teacher,</h3>
             <h4>Congratulations for successfully registering for ATL Marathon 23-24.</h4>
