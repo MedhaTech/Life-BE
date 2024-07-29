@@ -45,8 +45,7 @@ jobs:
           HOSTNAME: ${{ secrets.HOST_NAME }}
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
-          ssh-keyscan -H ${{ secrets.HOST_NAME }} >> ~/.ssh/known_hosts
-          ssh -i private_key ubuntu@${{secrets.HOST_NAME}} '
+          ssh -o StrictHostKeyChecking=no -i private_key ubuntu@${{secrets.HOST_NAME}} '
             cd life_be &&
             sudo git fetch origin &&
             sudo git checkout master &&
