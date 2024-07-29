@@ -707,6 +707,22 @@ export default class authService {
                     };
                 }
             });
+           
+              const totals = {
+                ideas: 0,
+                students: 0
+              };
+              let uu :any
+              // Calculate totals using for...of loop
+              for (uu  of Object.values(combined)) {
+                totals.ideas += uu.ideas;
+                totals.students += uu.students;
+              }
+              combined['all'] = {
+                state_name:'all',
+                ideas:totals.ideas,
+                students:totals.students
+              }
             return combined;
         } catch (error) {
             return error;
