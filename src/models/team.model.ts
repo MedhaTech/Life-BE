@@ -29,8 +29,7 @@ team.init(
             type: DataTypes.INTEGER
         },
         gender: {
-            type: DataTypes.ENUM(...Object.values(constents.gender_flags.list)),
-            defaultValue: constents.gender_flags.default
+            type: DataTypes.STRING
         },
         reg_no: {
             type: DataTypes.STRING
