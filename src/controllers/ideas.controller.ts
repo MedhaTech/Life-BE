@@ -152,6 +152,9 @@ export default class ideasController extends BaseController {
                                     "evaluated_at",
                                     "evaluation_status",
                                     "rejected_reason",
+                                    "state",
+                                    "fpp",
+                                    "youtubelink",
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                     ],
@@ -202,6 +205,9 @@ export default class ideasController extends BaseController {
                                     "evaluated_at",
                                     "evaluation_status",
                                     "rejected_reason",
+                                    "state",
+                                    "fpp",
+                                    "youtubelink",
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                     ],
@@ -276,6 +282,9 @@ export default class ideasController extends BaseController {
                         "district",
                         "evaluation_status",
                         "evaluated_at",
+                        "state",
+                        "fpp",
+                        "youtubelink",
                         [
                             db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                         ]
@@ -341,6 +350,9 @@ export default class ideasController extends BaseController {
                                     "evaluated_at",
                                     "evaluation_status",
                                     "rejected_reason",
+                                    "state",
+                                    "fpp",
+                                    "youtubelink",
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                     ],
@@ -416,6 +428,9 @@ export default class ideasController extends BaseController {
                                     "evaluation_status",
                                     "final_result",
                                     "rejected_reason",
+                                    "state",
+                                    "fpp",
+                                    "youtubelink",
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                     ],
@@ -522,6 +537,9 @@ export default class ideasController extends BaseController {
                             "district",
                             "evaluation_status",
                             "evaluated_at",
+                            "state",
+                            "fpp",
+                            "youtubelink",
                             [
                                 db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                             ],
@@ -712,7 +730,11 @@ export default class ideasController extends BaseController {
                     "evaluation_status",
                     "rejected_reason",
                     "final_result",
-                    "district"],
+                    "district",
+                    "state",
+                    "fpp",
+                    "youtubelink"
+                ],
                 where: {
                     [Op.and]: [
                         condition
@@ -896,6 +918,9 @@ export default class ideasController extends BaseController {
                             "verified_by",
                             "verified_at",
                             "district",
+                            "state",
+                            "fpp",
+                            "youtubelink",
                             [
                                 db.literal(`( SELECT count(*) FROM ideas as idea where idea.verified_by <> 'null')`),
                                 'overAllIdeas'
@@ -1036,6 +1061,9 @@ export default class ideasController extends BaseController {
                                 "evaluation_status",
                                 "rejected_reason",
                                 "evaluated_at",
+                                "state",
+                                "fpp",
+                                "youtubelink",
                                 [
                                     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
                                 ],
@@ -1103,6 +1131,9 @@ export default class ideasController extends BaseController {
                                 "district",
                                 "evaluation_status",
                                 "evaluated_at",
+                                "state",
+                                "fpp",
+                                "youtubelink",
                                 [
                                     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
                                 ],
@@ -1262,6 +1293,9 @@ export default class ideasController extends BaseController {
                     "evaluation_status",
                     "final_result",
                     "rejected_reason",
+                    "state",
+                    "fpp",
+                    "youtubelink",
                     [
                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                     ],
