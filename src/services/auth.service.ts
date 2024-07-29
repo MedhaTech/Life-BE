@@ -19,7 +19,7 @@ export default class authService {
     crudService: CRUDService = new CRUDService;
     private otp = '112233';
 
-   
+
     /**
      * Getting the details of the user for practical services (STUDENT, TEAM, MENTOR, ADMIN)
      * @param service String
@@ -49,7 +49,7 @@ export default class authService {
             return error;
         }
     }
-   
+
     /**
      * Register the User (STUDENT, EVALUATOR, ADMIN)
      * @param requestBody object
@@ -197,7 +197,7 @@ export default class authService {
             return result;
         }
     }
-    
+
     /**
      * logout service the User (STUDENT, EVALUATOR, ADMIN)
      * @param requestBody object 
@@ -217,7 +217,7 @@ export default class authService {
             return result;
         }
     }
-    
+
     /**
      *find the user and update the password field
      * @param requestBody Objects
@@ -301,15 +301,20 @@ export default class authService {
         const verifyOtpdata = `<body style="border: solid;margin-right: 15%;margin-left: 15%; ">
         <img src="https://aim-email-images.s3.ap-south-1.amazonaws.com/ATL-Marathon-Banner-1000X450px.jpg" alt="header" style="width: 100%;" />
         <div style="padding: 1% 5%;">
-        <h3>Dear Guide Teacher,</h3>
-        
-        <p>Your One-Time Password (OTP) to register yourself as a guide teacher in ATL Marathon 23-24 is <b>${otp}</b></p>
-        
-        <p>We appreciate for your interest in inspiring students to solve problems with simplified design thinking process as a method to innovate through this program.</p>
-        <p>
+        <h3>Dear Applicant,</h3>
+
+        <p>Thank you for registering an account with us. To complete your registration, please verify your email address using the code provided below: </p>
+
+        <p><b>Verification Code: ${otp} </b></p>        
+
+        <p>Please enter this code on the verification page to activate your account.</p>
+
+        <p>If you did not initiate this registration, please ignore this email or contact our support team for assistance.</p>
+
         <strong>
-        Regards,<br> ATL Marathon
+        Regards,<br> Ideas4Life
         </strong>
+        <p><strong> https://ideas4life.nic.in/ </strong></p>
         </div></body>`
         const forgotPassData = `
         <body style="border: solid;margin-right: 15%;margin-left: 15%; ">
@@ -325,9 +330,9 @@ export default class authService {
         </strong>
         </p>
         </div></body>`
-        const verifyOtpSubject = `OTP to register on AIM Platfrom`
-        const forgotPassSubjec = `Temporary Password to Login into AIM Platfrom`
-        const fullSubjec = `Welcome! Your AIM Registration was successful. Check out your login details`
+        const verifyOtpSubject = `Verification Code to register on Ideas4Life Platfrom`
+        const forgotPassSubjec = `Temporary Password to Login into Ideas4Life Platfrom`
+        const fullSubjec = `Welcome! Your Ideas4Life Registration was successful. Check out your login details`
         AWS.config.update({
             region: 'ap-south-1',
             accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -385,16 +390,16 @@ export default class authService {
                 throw badRequest('Email');
             }
             else {
-                
-                    const otp = await this.triggerEmail(requestBody.email, 1, 'no');
-                    if (otp instanceof Error) {
-                        throw otp;
-                    }
-                    const hashedPassword = await this.encryptGlobal(JSON.stringify(otp.otp));
-                    result.data = hashedPassword;
-                    return result;
+
+                const otp = await this.triggerEmail(requestBody.email, 1, 'no');
+                if (otp instanceof Error) {
+                    throw otp;
                 }
-            
+                const hashedPassword = await this.encryptGlobal(JSON.stringify(otp.otp));
+                result.data = hashedPassword;
+                return result;
+            }
+
         } catch (error) {
             result['error'] = error;
             return result;
@@ -431,6 +436,7 @@ export default class authService {
                     Data: subText
                 }
             },
+            //Source: "aim-no-reply@inqui-lab.org", /* required */
             // Source: "aim-no-reply@inqui-lab.org", /* required */
             Source: "info@ideas4life.in", /* required */
             ReplyToAddresses: [],
@@ -449,7 +455,7 @@ export default class authService {
             return error;
         }
     }
-    
+
     /**
      * Convert the plain text to encrypted text
      * @param value String
@@ -464,7 +470,7 @@ export default class authService {
         }).toString();
         return hashedPassword;
     }
-   
+
     async mobileotp(requestBody: any) {
         let result: any = {};
         try {
@@ -524,8 +530,8 @@ export default class authService {
             return result;
         }
     }
-    
-   
+
+
     /**
      * Get the student details with user_id update the password without OTP
      * @param requestBody Object
@@ -558,8 +564,8 @@ export default class authService {
             return result;
         }
     }
-   
-   
+
+
     /**
      * Get the user by user_id/username and update the user password
      * @param requestBody 
@@ -604,7 +610,7 @@ export default class authService {
     async bulkDeleteUserWithStudentDetails(arrayOfUserIds: any) {
         return await this.bulkDeleteUserWithDetails(student, arrayOfUserIds)
     }
-    
+
     /**
      *  delete the bulkUser (hard delete) based on the role mentioned and user_id's
      * @param user_id String
@@ -633,7 +639,7 @@ export default class authService {
             return error;
         }
     }
-   
+
 
     /** encrypt code */
     async encryptGlobal(data: any) {
@@ -660,9 +666,9 @@ export default class authService {
             return error;
         }
     }
-    async convertingObjtoarrofiteams(data:any){
+    async convertingObjtoarrofiteams(data: any) {
         try {
-            const themeNames = data.map((theme :any) => theme.theme_name);
+            const themeNames = data.map((theme: any) => theme.theme_name);
             return themeNames;
         } catch (error) {
             return error;

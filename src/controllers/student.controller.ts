@@ -34,7 +34,7 @@ export default class StudentController extends BaseController {
         this.router.get(`${this.path}/logout`, this.logout.bind(this));
         this.router.put(`${this.path}/changePassword`, validationMiddleware(studentChangePasswordSchema), this.changePassword.bind(this));
         this.router.get(`${this.path}/:student_user_id/studentCertificate`, this.studentCertificate.bind(this));
-        this.router.post(`${this.path}/emailOtp`, this.emailOpt.bind(this));
+        this.router.post(`${this.path}/emailOtp`, this.emailOtp.bind(this));
         this.router.post(`${this.path}/idcardUpload`, this.handleAttachment.bind(this));
         super.initializeRoutes();
     }
@@ -374,7 +374,7 @@ export default class StudentController extends BaseController {
             next(error);
         }
     }
-    private async emailOpt(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+    private async emailOtp(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
         try {
             const { email } = req.body;
             if (!email) {
