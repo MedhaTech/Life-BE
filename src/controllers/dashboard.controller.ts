@@ -29,8 +29,9 @@ export default class DashboardController extends BaseController {
 
         // ///map stats
         // this.router.get(`${this.path}/refreshMapStatsLive`, this.getMapStatsLive.bind(this))
-        // this.router.get(`${this.path}/mapStats`, this.getMapStats.bind(this))
-        // this.router.get(`${this.path}/refreshMapStats`, this.refreshMapStats.bind(this))
+        //this.router.get(`${this.path}/mapStats`, this.getMapStats.bind(this))
+        this.router.get(`${this.path}/mapStatsCount`, this.getMapStatsCount.bind(this))
+        //this.router.get(`${this.path}/refreshMapStats`, this.refreshMapStats.bind(this))
 
         //evaluator stats..
         this.router.get(`${this.path}/evaluatorStats`, this.getEvaluatorStats.bind(this));
@@ -61,29 +62,40 @@ export default class DashboardController extends BaseController {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     ///////// MAPP STATS
     ///////////////////////////////////////////////////////////////////////////////////////////////////
-    private async refreshMapStats(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        try {
-            const service = new DashboardService()
-            // const result = await service.resetMapStats()
-            // res.status(200).json(dispatcher(res, result, "success"))
-        } catch (err) {
-            next(err);
-        }
-    }
-    private async getMapStats(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        try {
-            this.model = dashboard_map_stat.name
-            return await this.getData(req, res, next, [],
-                [
-                    [db.fn('DISTINCT', db.col('state_name')), 'state_name'],
-                    `dashboard_map_stat_id`,
-                    `overall_schools`, `reg_schools`, `schools_with_teams`, `teams`, `ideas`, `students`, `status`, `created_by`, `created_at`, `updated_by`, `updated_at`
-                ]
-            )
-        } catch (error) {
-            next(error);
-        }
-    };
+    // private async refreshMapStats(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+    //     try {
+    //         const service = new DashboardService()
+    //         const student_count = await db.query(`SELECT 
+    //             state, COUNT(idea_id) as idea_Cout
+    //         FROM
+    //             Life_db.ideas
+    //         GROUP BY state;`, { type: QueryTypes.SELECT });
+    //         const result = await service.resetMapStats(student_count)
+            
+    //         res.status(200).json(dispatcher(res, result, "success"))
+    //     } catch (err) {
+    //         next(err);
+    //     }
+    // }
+    // private async getMapStats(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+    //     try {
+    //         //this.model = dashboard_map_stat.name
+    //         const student_count = await db.query(`SELECT 
+    //             state, COUNT(idea_id) as idea_Cout
+    //         FROM
+    //             Life_db.ideas
+    //         GROUP BY state;`, { type: QueryTypes.SELECT });
+
+    //         return await this.getData(req, res, next, [],
+    //             [
+    //                 [db.fn('DISTINCT', db.col('state_name')), 'state_name'],
+    //                 `dashboard_map_stat_id`,`ideas`, `students`, `status`, `created_by`, `created_at`, `updated_by`, `updated_at`
+    //             ]
+    //         )
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     ///////// EVALUATOR STATS
@@ -401,4 +413,24 @@ export default class DashboardController extends BaseController {
     //         next(err)
     //     }
     // }
+    protected async getMapStatsCount(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            console.log("sjhdjc")
+            let result: any = {};
+            let submited: any = {};
+           
+            const ideas_count = await db.query(`SELECT 
+                state, COUNT(idea_id) as idea_Cout
+            FROM
+                Life_db.ideas
+            GROUP BY state;`, { type: QueryTypes.SELECT });
+            result['ideas_count'] = ideas_count
+            result['idea']=["jhc",2]
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            console.log(err);
+            next(err)
+        }
+    }
 };

@@ -51,5 +51,6 @@ export const wildcardRoutes = [
     "/api/v1/institutions/logout",
     "/api/v1/students/emailOtp",
     "/api/v1/students/register",
-    "/api/v1/students/idcardUpload"
+    "/api/v1/students/idcardUpload",
+    "/api/v1/dashboard/mapStatsCount"
 ];
