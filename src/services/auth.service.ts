@@ -674,4 +674,39 @@ export default class authService {
             return error;
         }
     }
+    async combinearrayfordashboard(i: any, s: any, t: any) {
+        try {
+            const combined: any = {};
+
+            const themeNames = i.map((theme: any) => {
+                combined[theme.state] = {
+                    ideas: theme.idea_Cout,
+                    students: 0 // Default to 0, to be updated later
+                };
+            });
+            s.map((theme: any) => {
+                if (combined[theme.state]) {
+                    combined[theme.state].students = theme.student_Cout;
+                } else {
+                    combined[theme.state] = {
+                        ideas: 0, // Default to 0 if no idea_Cout available
+                        students: theme.student_Cout
+                    };
+                }
+            });
+            t.map((theme: any) => {
+                if (combined[theme.state]) {
+                    combined[theme.state].students = combined[theme.state].students + theme.teams_cnt;
+                } else {
+                    combined[theme.state] = {
+                        ideas: 0, // Default to 0 if no idea_Cout available
+                        students: theme.teams_cnt
+                    };
+                }
+            });
+            return combined;
+        } catch (error) {
+            return error;
+        }
+    }
 }

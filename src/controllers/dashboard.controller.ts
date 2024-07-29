@@ -71,7 +71,7 @@ export default class DashboardController extends BaseController {
     //             Life_db.ideas
     //         GROUP BY state;`, { type: QueryTypes.SELECT });
     //         const result = await service.resetMapStats(student_count)
-            
+
     //         res.status(200).json(dispatcher(res, result, "success"))
     //     } catch (err) {
     //         next(err);
@@ -415,17 +415,28 @@ export default class DashboardController extends BaseController {
     // }
     protected async getMapStatsCount(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
         try {
-            console.log("sjhdjc")
             let result: any = {};
             let submited: any = {};
-           
             const ideas_count = await db.query(`SELECT 
                 state, COUNT(idea_id) as idea_Cout
             FROM
                 Life_db.ideas
             GROUP BY state;`, { type: QueryTypes.SELECT });
-            result['ideas_count'] = ideas_count
-            result['idea']=["jhc",2]
+            const student_count = await db.query(`SELECT 
+    state, COUNT(student_id) as student_Cout
+FROM
+    Life_db.students
+GROUP BY state;`, { type: QueryTypes.SELECT });
+            const student_team_count = await db.query(`SELECT 
+    students.state,
+    COALESCE(COUNT(teams.team_id), 0) AS teams_cnt
+FROM
+    students
+        LEFT JOIN
+    teams ON students.student_id = teams.student_id
+GROUP BY students.state`, { type: QueryTypes.SELECT });
+            const combined: any = {};
+            result  = await this.authService.combinearrayfordashboard(ideas_count,student_count,student_team_count)
             res.status(200).send(dispatcher(res, result, 'done'))
         }
         catch (err) {
