@@ -680,6 +680,7 @@ export default class authService {
 
             const themeNames = i.map((theme: any) => {
                 combined[theme.state] = {
+                    state_name:theme.state,
                     ideas: theme.idea_Cout,
                     students: 0 // Default to 0, to be updated later
                 };
@@ -690,6 +691,7 @@ export default class authService {
                 } else {
                     combined[theme.state] = {
                         ideas: 0, // Default to 0 if no idea_Cout available
+                        state_name:theme.state,
                         students: theme.student_Cout
                     };
                 }
@@ -700,6 +702,7 @@ export default class authService {
                 } else {
                     combined[theme.state] = {
                         ideas: 0, // Default to 0 if no idea_Cout available
+                        state_name:theme.state,
                         students: theme.teams_cnt
                     };
                 }
