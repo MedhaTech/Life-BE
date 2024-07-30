@@ -6,6 +6,7 @@ import { speeches } from "../configs/speeches.config";
 import { themes_problems } from "../models/themes_problems.model";
 import { QueryTypes, Sequelize } from "sequelize";
 import db from "../utils/dbconnection.util";
+import { unauthorized } from "boom";
 
 export default class themes_problemsController extends BaseController {
 
@@ -18,6 +19,36 @@ export default class themes_problemsController extends BaseController {
         this.router.get(this.path + "/getthemes", this.getThemes.bind(this));
         this.router.get(this.path + "/getproblemstatement", this.getProblemStatement.bind(this));
         super.initializeRoutes();
+    }
+    protected async getData(req: Request, res: Response, next: NextFunction) {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            throw unauthorized(speeches.ROLE_ACCES_DECLINE)
+        }
+        try {
+
+            let data: any = {}
+            const where: any = {};
+
+            const { id } = req.params;
+            if (id) {
+                const newParamId = await this.authService.decryptGlobal(req.params.id);
+                where[`theme_problem_id`] = newParamId;
+                data = await this.crudService.findOne(themes_problems, {
+                    where: [where]
+                })
+            }
+            else {
+                data = await this.crudService.findAll(themes_problems, {
+                    attributes: [
+                        "theme_problem_id",
+                        "theme_name"
+                    ]
+                })
+            }
+            return res.status(200).send(dispatcher(res, data, 'success'));
+        } catch (error) {
+            next(error);
+        }
     }
     protected async getThemes(req: Request, res: Response, next: NextFunction) {
         if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
