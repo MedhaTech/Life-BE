@@ -44,6 +44,16 @@ export default class DashboardController extends BaseController {
         this.router.get(`${this.path}/studentCount`, this.getstudentCount.bind(this));
         this.router.get(`${this.path}/ideasCount`, this.getideasCount.bind(this));
         this.router.get(`${this.path}/studentCountbygender`, this.getstudentCountbygender.bind(this));
+        this.router.get(`${this.path}/Overallideas`, this.getOverallideas.bind(this));
+        this.router.get(`${this.path}/OverallStudent`, this.getOverallStudent.bind(this));
+        this.router.get(`${this.path}/allCategorys`, this.getcategory.bind(this));
+        this.router.get(`${this.path}/allInstitutions`, this.gettype.bind(this));
+        this.router.get(`${this.path}/allGenders`, this.getgender.bind(this));
+        this.router.get(`${this.path}/StudentStateWise`, this.getStudentState.bind(this));
+        this.router.get(`${this.path}/themeWise`, this.getthemeCount.bind(this));
+        this.router.get(`${this.path}/HavingPrototype`, this.getHavingPrototype.bind(this));
+        this.router.get(`${this.path}/detailsStudents`, this.getdetailsofstudent.bind(this));
+        this.router.get(`${this.path}/detailsIdeas`, this.getdeatailsofIdeas.bind(this));
 
         // //State DashBoard stats
         // this.router.get(`${this.path}/StateDashboard`, this.getStateDashboard.bind(this));
@@ -436,7 +446,7 @@ FROM
     teams ON students.student_id = teams.student_id
 GROUP BY students.state`, { type: QueryTypes.SELECT });
             const combined: any = {};
-            result  = await this.authService.combinearrayfordashboard(ideas_count,student_count,student_team_count)
+            result = await this.authService.combinearrayfordashboard(ideas_count, student_count, student_team_count)
             res.status(200).send(dispatcher(res, result, 'done'))
         }
         catch (err) {
@@ -444,4 +454,253 @@ GROUP BY students.state`, { type: QueryTypes.SELECT });
             next(err)
         }
     }
+    protected async getOverallStudent(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            const result = await db.query(`select (select count(*) from students)+
+(select count(*) from teams) as "overall students"`, { type: QueryTypes.SELECT });
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+    protected async getOverallideas(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            const result = await db.query(`select count(*) as "overall ideas"  from ideas;`, { type: QueryTypes.SELECT });
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+    protected async getcategory(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            const result = await db.query(`SELECT
+    COUNT(CASE WHEN year_of_study = 'Student' THEN 1 END) AS student_count,
+    COUNT(CASE WHEN year_of_study = 'Faculty' THEN 1 END) AS faculty_count,
+    COUNT(CASE WHEN year_of_study = 'Research Scholar' THEN 1 END) AS RS_count,
+    COUNT(CASE WHEN year_of_study = 'Others' THEN 1 END) AS others_count
+FROM Life_db.students;
+`, { type: QueryTypes.SELECT });
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+    protected async gettype(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            const result = await db.query(`SELECT
+    COUNT(CASE WHEN s.group = 'Engineering' THEN 1 END) AS Engineering_count,
+    COUNT(CASE WHEN s.group = 'Law' THEN 1 END) AS Law_count,
+    COUNT(CASE WHEN s.group = 'Life Sciences' THEN 1 END) AS Life_Sciences_count,
+    COUNT(CASE WHEN s.group = 'Medical' THEN 1 END) AS Medical_count,
+    COUNT(CASE WHEN s.group = 'Ayurveda' THEN 1 END) AS Ayurveda_count,
+    COUNT(CASE WHEN s.group = 'Others' THEN 1 END) AS Others_count
+FROM students as s
+`, { type: QueryTypes.SELECT });
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+    protected async getgender(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            const result = await db.query(`SELECT
+    COUNT(CASE WHEN Gender = 'MALE' THEN 1 END) AS male_count,
+    COUNT(CASE WHEN Gender = 'FEMALE' THEN 1 END) AS female_count,
+    COUNT(CASE WHEN Gender = 'OTHERS' THEN 1 END) AS others_count
+FROM Life_db.students;
+`, { type: QueryTypes.SELECT });
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+    protected async getStudentState(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            const result = await db.query(`SELECT 
+    state,
+    COUNT(*) AS state_count
+FROM Life_db.students
+GROUP BY state
+ORDER BY state_count DESC
+LIMIT 5;
+`, { type: QueryTypes.SELECT });
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+    protected async getthemeCount(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            const result = await db.query(`SELECT
+    COUNT(CASE WHEN theme_problem_id = 1 THEN 1 END) AS "Save Energy",
+     COUNT(CASE WHEN theme_problem_id = 2 THEN 1 END) AS "Save Water",
+      COUNT(CASE WHEN theme_problem_id = 3 THEN 1 END) AS "Say No to Single Use Plastic",
+       COUNT(CASE WHEN theme_problem_id = 4 THEN 1 END) AS "Reduce E-waste",
+        COUNT(CASE WHEN theme_problem_id = 5 THEN 1 END) AS "Adopt Sustainable Food Systems",
+         COUNT(CASE WHEN theme_problem_id = 6 THEN 1 END) AS "Reduce Waste",
+          COUNT(CASE WHEN theme_problem_id = 7 THEN 1 END) AS "Adopt Healthy Lifestyles",
+           COUNT(CASE WHEN theme_problem_id = 8 THEN 1 END) AS "Others (Any other theme related to environment-friendly lifestyle) "
+FROM ideas where ideas.status = "SUBMITTED";
+`, { type: QueryTypes.SELECT });
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+    protected async getHavingPrototype(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            const result = await db.query(`select count(*) as "Having Prototype" from ideas where prototype_available = "YES";`, { type: QueryTypes.SELECT });
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+    protected async getdetailsofstudent(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            const resultquery = await db.query(`SELECT 
+    state,
+    COUNT(*) AS reg_student,
+    (SELECT 
+            teams_cnt
+        FROM
+            (SELECT 
+                students.state,
+                    COALESCE(COUNT(teams.team_id), 0) AS teams_cnt
+            FROM
+                students
+            LEFT JOIN teams ON students.student_id = teams.student_id
+            GROUP BY students.state) AS tt
+        WHERE
+            tt.state = s.state) AS 'team members',
+    COUNT(CASE
+        WHEN Gender = 'MALE' THEN 1
+    END) AS male_count,
+    COUNT(CASE
+        WHEN Gender = 'FEMALE' THEN 1
+    END) AS female_count,
+    COUNT(CASE
+        WHEN Gender = 'OTHERS' THEN 1
+    END) AS others_count,
+    COUNT(CASE
+        WHEN year_of_study = 'Student' THEN 1
+    END) AS student_count,
+    COUNT(CASE
+        WHEN year_of_study = 'Faculty' THEN 1
+    END) AS faculty_count,
+    COUNT(CASE
+        WHEN year_of_study = 'Research Scholar' THEN 1
+    END) AS RS_count,
+    COUNT(CASE
+        WHEN year_of_study = 'Others' THEN 1
+    END) AS others_count,
+    COUNT(CASE
+        WHEN s.group = 'Engineering' THEN 1
+    END) AS Engineering_count,
+    COUNT(CASE
+        WHEN s.group = 'Law' THEN 1
+    END) AS Law_count,
+    COUNT(CASE
+        WHEN s.group = 'Life Sciences' THEN 1
+    END) AS Life_Sciences_count,
+    COUNT(CASE
+        WHEN s.group = 'Medical' THEN 1
+    END) AS Medical_count,
+    COUNT(CASE
+        WHEN s.group = 'Ayurveda' THEN 1
+    END) AS Ayurveda_count,
+    COUNT(CASE
+        WHEN s.group = 'Others' THEN 1
+    END) AS Others_count
+FROM
+    Life_db.students AS s
+GROUP BY state
+ORDER BY state`, { type: QueryTypes.SELECT });
+            const result = await this.authService.addingstatesodstudent(resultquery);
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+    protected async getdeatailsofIdeas(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
+        }
+        try {
+            const resultquery = await db.query(`SELECT 
+state,
+    COUNT(*) AS 'submited',
+    COUNT(CASE
+        WHEN theme_problem_id = 1 THEN 1
+    END) AS 'Save Energy',
+    COUNT(CASE
+        WHEN theme_problem_id = 2 THEN 1
+    END) AS 'Save Water',
+    COUNT(CASE
+        WHEN theme_problem_id = 3 THEN 1
+    END) AS 'Say No to Single Use Plastic',
+    COUNT(CASE
+        WHEN theme_problem_id = 4 THEN 1
+    END) AS 'Reduce E-waste',
+    COUNT(CASE
+        WHEN theme_problem_id = 5 THEN 1
+    END) AS 'Adopt Sustainable Food Systems',
+    COUNT(CASE
+        WHEN theme_problem_id = 6 THEN 1
+    END) AS 'Reduce Waste',
+    COUNT(CASE
+        WHEN theme_problem_id = 7 THEN 1
+    END) AS 'Adopt Healthy Lifestyles',
+    COUNT(CASE
+        WHEN theme_problem_id = 8 THEN 1
+    END) AS 'Others (Any other theme related to environment-friendly lifestyle) '
+FROM
+    Life_db.ideas
+WHERE
+    ideas.status = 'SUBMITTED'
+GROUP BY state`, { type: QueryTypes.SELECT });
+            const result = await this.authService.addingstates(resultquery);
+
+            res.status(200).send(dispatcher(res, result, 'done'))
+        }
+        catch (err) {
+            next(err)
+        }
+    }
+
 };
