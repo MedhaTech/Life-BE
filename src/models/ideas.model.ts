@@ -13,6 +13,7 @@ export class ideas extends Model<InferAttributes<ideas>, InferCreationAttributes
     declare detailed_solution: string;
     declare prototype_available: Enumerator;
     declare Prototype_file: String;
+    declare technology: String;
     declare idea_available: Enumerator;
     declare self_declaration: Enumerator;
     declare status: Enumerator;
@@ -71,6 +72,10 @@ ideas.init(
 
         },
         Prototype_file: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        technology: {
             type: DataTypes.STRING,
             allowNull: true,
         },
