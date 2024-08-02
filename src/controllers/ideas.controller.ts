@@ -55,6 +55,9 @@ export default class ideasController extends BaseController {
         const paramStatus: any = newREQQuery.status;
         const evaluation_status: any = newREQQuery.evaluation_status;
         const district: any = newREQQuery.district;
+        const state: any = newREQQuery.state;
+        const theme_problem_id: any = newREQQuery.theme_problem_id;
+        const prototype_available: any = newREQQuery.prototype_available;
         const sub_category: any = newREQQuery.sub_category;
         const sdg: any = newREQQuery.sdg;
         const rejected_reason: any = newREQQuery.rejected_reason;
@@ -115,6 +118,16 @@ export default class ideasController extends BaseController {
         if (evaluator_id) {
             additionalFilter['evaluated_by'] = evaluator_id && typeof evaluator_id == 'string' ? evaluator_id : {}
         }
+        if (state) {
+            additionalFilter["state"] = state && typeof state == 'string' ? state : {}
+        }
+        if (theme_problem_id) {
+            additionalFilter["theme_problem_id"] = theme_problem_id && typeof theme_problem_id == 'string' ? theme_problem_id : {}
+        }
+        if (prototype_available) {
+            additionalFilter["prototype_available"] = prototype_available && typeof prototype_available == 'string' ? prototype_available : {}
+        }
+        
         if (district) {
             additionalFilter["district"] = district && typeof district == 'string' ? district : {}
         }
@@ -155,6 +168,7 @@ export default class ideasController extends BaseController {
                                     "state",
                                     "fpp",
                                     "youtubelink",
+                                    "technology",
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                     ],
@@ -208,6 +222,7 @@ export default class ideasController extends BaseController {
                                     "state",
                                     "fpp",
                                     "youtubelink",
+                                    "technology",
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                     ],
@@ -285,6 +300,7 @@ export default class ideasController extends BaseController {
                         "state",
                         "fpp",
                         "youtubelink",
+                        "technology",
                         [
                             db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                         ]
@@ -353,6 +369,7 @@ export default class ideasController extends BaseController {
                                     "state",
                                     "fpp",
                                     "youtubelink",
+                                    "technology",
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                     ],
@@ -431,6 +448,7 @@ export default class ideasController extends BaseController {
                                     "state",
                                     "fpp",
                                     "youtubelink",
+                                    "technology",
                                     [
                                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                                     ],
@@ -540,6 +558,7 @@ export default class ideasController extends BaseController {
                             "state",
                             "fpp",
                             "youtubelink",
+                            "technology",
                             [
                                 db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                             ],
@@ -733,7 +752,8 @@ export default class ideasController extends BaseController {
                     "district",
                     "state",
                     "fpp",
-                    "youtubelink"
+                    "youtubelink",
+                    "technology"
                 ],
                 where: {
                     [Op.and]: [
@@ -921,6 +941,7 @@ export default class ideasController extends BaseController {
                             "state",
                             "fpp",
                             "youtubelink",
+                            "technology",
                             [
                                 db.literal(`( SELECT count(*) FROM ideas as idea where idea.verified_by <> 'null')`),
                                 'overAllIdeas'
@@ -1064,6 +1085,7 @@ export default class ideasController extends BaseController {
                                 "state",
                                 "fpp",
                                 "youtubelink",
+                                "technology",
                                 [
                                     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
                                 ],
@@ -1134,6 +1156,7 @@ export default class ideasController extends BaseController {
                                 "state",
                                 "fpp",
                                 "youtubelink",
+                                "technology",
                                 [
                                     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = \`ideas\`.\`initiated_by\` )`), 'initiated_name'
                                 ],
@@ -1296,6 +1319,7 @@ export default class ideasController extends BaseController {
                     "state",
                     "fpp",
                     "youtubelink",
+                    "technology",
                     [
                         db.literal(`(SELECT full_name FROM users As s WHERE s.user_id =  \`ideas\`.\`evaluated_by\` )`), 'evaluated_name'
                     ],
