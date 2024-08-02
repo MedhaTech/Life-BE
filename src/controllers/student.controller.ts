@@ -50,18 +50,21 @@ export default class StudentController extends BaseController {
             } else if (Object.keys(req.query).length !== 0) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
             }
-            let { state, year_of_study, group } = newREQQuery;
+            let { state, year_of_study, group, Gender } = newREQQuery;
             let data: any = {}
             const where: any = {};
             where[`status`] = "ACTIVE";
             if (state !== 'All States' && state !== undefined) {
                 where[`state`] = state;
             }
-            if (year_of_study !== 'All Applicants' && year_of_study !== undefined) {
+            if (year_of_study !== 'All Categorys' && year_of_study !== undefined) {
                 where[`year_of_study`] = year_of_study;
             }
-            if (group !== 'All Institution Types' && group !== undefined) {
+            if (group !== 'All Institutions' && group !== undefined) {
                 where[`group`] = group;
+            }
+            if (Gender !== 'All Genders' && Gender !== undefined) {
+                where[`Gender`] = Gender;
             }
             const { id } = req.params;
             if (id) {

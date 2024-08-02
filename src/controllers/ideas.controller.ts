@@ -57,6 +57,7 @@ export default class ideasController extends BaseController {
         const district: any = newREQQuery.district;
         const state: any = newREQQuery.state;
         const theme_problem_id: any = newREQQuery.theme_problem_id;
+        const prototype_available: any = newREQQuery.prototype_available;
         const sub_category: any = newREQQuery.sub_category;
         const sdg: any = newREQQuery.sdg;
         const rejected_reason: any = newREQQuery.rejected_reason;
@@ -123,6 +124,10 @@ export default class ideasController extends BaseController {
         if (theme_problem_id) {
             additionalFilter["theme_problem_id"] = theme_problem_id && typeof theme_problem_id == 'string' ? theme_problem_id : {}
         }
+        if (prototype_available) {
+            additionalFilter["prototype_available"] = prototype_available && typeof prototype_available == 'string' ? prototype_available : {}
+        }
+        
         if (district) {
             additionalFilter["district"] = district && typeof district == 'string' ? district : {}
         }

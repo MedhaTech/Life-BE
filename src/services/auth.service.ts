@@ -680,7 +680,7 @@ export default class authService {
 
             const themeNames = i.map((theme: any) => {
                 combined[theme.state] = {
-                    state_name:theme.state,
+                    state_name: theme.state,
                     ideas: theme.idea_Cout,
                     students: 0 // Default to 0, to be updated later
                 };
@@ -691,7 +691,7 @@ export default class authService {
                 } else {
                     combined[theme.state] = {
                         ideas: 0, // Default to 0 if no idea_Cout available
-                        state_name:theme.state,
+                        state_name: theme.state,
                         students: theme.student_Cout
                     };
                 }
@@ -702,28 +702,243 @@ export default class authService {
                 } else {
                     combined[theme.state] = {
                         ideas: 0, // Default to 0 if no idea_Cout available
-                        state_name:theme.state,
+                        state_name: theme.state,
                         students: theme.teams_cnt
                     };
                 }
             });
-           
-              const totals = {
+
+            const totals = {
                 ideas: 0,
                 students: 0
-              };
-              let uu :any
-              // Calculate totals using for...of loop
-              for (uu  of Object.values(combined)) {
+            };
+            let uu: any
+            // Calculate totals using for...of loop
+            for (uu of Object.values(combined)) {
                 totals.ideas += uu.ideas;
                 totals.students += uu.students;
-              }
-              combined['all'] = {
-                state_name:'all',
-                ideas:totals.ideas,
-                students:totals.students
-              }
+            }
+            combined['all'] = {
+                state_name: 'all',
+                ideas: totals.ideas,
+                students: totals.students
+            }
             return combined;
+        } catch (error) {
+            return error;
+        }
+    }
+    async addingstates(data: any) {
+        try {
+            const allStates = [
+                'Andaman and Nicobar Islands',
+                'Andhra Pradesh',
+                'Arunachal Pradesh',
+                'Assam',
+                'Bihar',
+                'Chandigarh',
+                'Chhattisgarh',
+                'Dadra and Nagar Haveli and Daman and Diu',
+                'Delhi',
+                'Goa',
+                'Gujarat',
+                'Haryana',
+                'Himachal Pradesh',
+                'Jammu and Kashmir',
+                'Jharkhand',
+                'Karnataka',
+                'Kerala',
+                'Ladakh',
+                'Lakshadweep',
+                'Madhya Pradesh',
+                'Maharashtra',
+                'Manipur',
+                'Meghalaya',
+                'Mizoram',
+                'Nagaland',
+                'Odisha',
+                'Puducherry',
+                'Punjab',
+                'Rajasthan',
+                'Sikkim',
+                'Tamil Nadu',
+                'Telangana',
+                'Tripura',
+                'Uttar Pradesh',
+                'Uttarakhand',
+                'West Bengal',
+            ];
+            // Create a map for quick lookup
+            const dataMap = new Map(data.map((item: any) => [item.state, item]));
+
+            // Add missing states with default values
+            const updatedData = allStates.map((state: any) => {
+                if (!dataMap.has(state)) {
+                    return {
+                        state: state,
+                        submited: 0,
+                        'Save Energy': 0,
+                        'Save Water': 0,
+                        'Say No to Single Use Plastic': 0,
+                        'Reduce E-waste': 0,
+                        'Adopt Sustainable Food Systems': 0,
+                        'Reduce Waste': 0,
+                        'Adopt Healthy Lifestyles': 0,
+                        'Others (Any other theme related to environment-friendly lifestyle) ': 0
+                    };
+                }
+                return dataMap.get(state);
+            });
+
+            const finallist: any = updatedData
+            const totals = {
+                state: 'total',
+                submited: 0,
+                'Save Energy': 0,
+                'Save Water': 0,
+                'Say No to Single Use Plastic': 0,
+                'Reduce E-waste': 0,
+                'Adopt Sustainable Food Systems': 0,
+                'Reduce Waste': 0,
+                'Adopt Healthy Lifestyles': 0,
+                'Others (Any other theme related to environment-friendly lifestyle) ': 0
+            };
+            let uu: any
+            // Calculate totals using for...of loop
+            for (uu of Object.values(updatedData)) {
+                totals.submited += uu.submited;
+                totals['Save Energy'] += uu['Save Energy'];
+                totals['Save Water'] += uu['Save Water'];
+                totals['Say No to Single Use Plastic'] += uu['Say No to Single Use Plastic'];
+                totals['Reduce E-waste'] += uu['Reduce E-waste'];
+                totals['Adopt Sustainable Food Systems'] += uu['Adopt Sustainable Food Systems'];
+                totals['Reduce Waste'] += uu['Reduce Waste'];
+                totals['Adopt Healthy Lifestyles'] += uu['Adopt Healthy Lifestyles'];
+                totals['Others (Any other theme related to environment-friendly lifestyle) '] += uu['Others (Any other theme related to environment-friendly lifestyle) '];
+            }
+            finallist.push(totals)
+
+            return finallist;
+        } catch (error) {
+            return error;
+        }
+    }
+    async addingstatesodstudent(data: any) {
+        try {
+            const allStates = [
+                'Andaman and Nicobar Islands',
+                'Andhra Pradesh',
+                'Arunachal Pradesh',
+                'Assam',
+                'Bihar',
+                'Chandigarh',
+                'Chhattisgarh',
+                'Dadra and Nagar Haveli and Daman and Diu',
+                'Delhi',
+                'Goa',
+                'Gujarat',
+                'Haryana',
+                'Himachal Pradesh',
+                'Jammu and Kashmir',
+                'Jharkhand',
+                'Karnataka',
+                'Kerala',
+                'Ladakh',
+                'Lakshadweep',
+                'Madhya Pradesh',
+                'Maharashtra',
+                'Manipur',
+                'Meghalaya',
+                'Mizoram',
+                'Nagaland',
+                'Odisha',
+                'Puducherry',
+                'Punjab',
+                'Rajasthan',
+                'Sikkim',
+                'Tamil Nadu',
+                'Telangana',
+                'Tripura',
+                'Uttar Pradesh',
+                'Uttarakhand',
+                'West Bengal',
+            ];
+            // Create a map for quick lookup
+            const dataMap = new Map(data.map((item: any) => [item.state, item]));
+
+            // Add missing states with default values
+            const updatedData = allStates.map((state: any) => {
+                if (!dataMap.has(state)) {
+                    return {
+                        state: state,
+                        'total enrolled':0,
+                        reg_student: 0,
+                        'team members': 0,
+                        male_count: 0,
+                        female_count: 0,
+                        others_gender_count: 0,
+                        student_count: 0,
+                        faculty_count: 0,
+                        RS_count: 0,
+                        others_category_count: 0,
+                        Engineering_count: 0,
+                        Law_count: 0,
+                        Life_Sciences_count: 0,
+                        Medical_count: 0,
+                        Ayurveda_count: 0,
+                        Others_count: 0
+                    };
+                }
+                const eachobj : any  =  dataMap.get(state)
+                if(dataMap.has(state)){
+                   eachobj['total enrolled'] = eachobj.reg_student+eachobj['team members']
+                }
+                return eachobj;
+            });
+            
+            const finallist: any = updatedData
+            const totals = {
+                state: "total",
+                'total enrolled':0,
+                reg_student: 0,
+                'team members': 0,
+                male_count: 0,
+                female_count: 0,
+                others_gender_count: 0,
+                student_count: 0,
+                faculty_count: 0,
+                RS_count: 0,
+                others_category_count: 0,
+                Engineering_count: 0,
+                Law_count: 0,
+                Life_Sciences_count: 0,
+                Medical_count: 0,
+                Ayurveda_count: 0,
+                Others_count: 0
+            };
+            let uu: any
+            // Calculate totals using for...of loop
+            for (uu of Object.values(updatedData)) {
+                totals['total enrolled'] += uu['total enrolled'];
+                totals.reg_student += uu.reg_student;
+                totals['team members'] += uu['team members'];
+                totals.male_count += uu.male_count;
+                totals.female_count += uu.female_count;
+                totals.others_gender_count += uu.others_gender_count;
+                totals.student_count += uu.student_count;
+                totals.faculty_count += uu.faculty_count;
+                totals.RS_count += uu.RS_count;
+                totals.others_category_count += uu.others_category_count;
+                totals.Engineering_count += uu.Engineering_count;
+                totals.Law_count += uu.Law_count;
+                totals.Life_Sciences_count += uu.Life_Sciences_count;
+                totals.Medical_count += uu.Medical_count;
+                totals.Ayurveda_count += uu.Ayurveda_count;
+                totals.Others_count += uu.Others_count;
+            }
+            finallist.push(totals)
+
+            return finallist;
         } catch (error) {
             return error;
         }
