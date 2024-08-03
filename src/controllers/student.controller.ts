@@ -57,7 +57,7 @@ export default class StudentController extends BaseController {
             if (state !== 'All States' && state !== undefined) {
                 where[`state`] = state;
             }
-            if (year_of_study !== 'All Categorys' && year_of_study !== undefined) {
+            if (year_of_study !== 'All Categories' && year_of_study !== undefined) {
                 where[`year_of_study`] = year_of_study;
             }
             if (group !== 'All Institutions' && group !== undefined) {
