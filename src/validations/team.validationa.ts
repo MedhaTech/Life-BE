@@ -22,7 +22,7 @@ export const teamSchema = Joi.object().keys({
     gender: Joi.string(),
     member_category: Joi.string(),
     dob: Joi.date(),
-    age: Joi.string(),
+    age: Joi.number(),
     institution_name: Joi.string()
 
 });
@@ -36,6 +36,6 @@ export const teamUpdateSchema = Joi.object().keys({
     gender: Joi.string(),
     member_category: Joi.string(),
     dob: Joi.date(),
-    age: Joi.string(),
+    age: Joi.number(),
     institution_name: Joi.string()
 });
