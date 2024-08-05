@@ -44,7 +44,7 @@ team.init(
             type: DataTypes.DATE
         },
         age: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER
         },
         institution_name: {
             type: DataTypes.STRING
