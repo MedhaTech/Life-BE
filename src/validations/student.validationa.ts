@@ -46,7 +46,8 @@ export const studentChangePasswordSchema = Joi.object().keys({
 export const studentResetPasswordSchema = Joi.object().keys({
     user_id: Joi.string().required().messages({
         'string.empty': speeches.USER_USERID_REQUIRED
-    })
+    }),
+    mobile: Joi.string().trim().regex(constents.ONLY_DIGIT_PATTERN)
 });
 
 export const studentUpdateSchema = Joi.object().keys({

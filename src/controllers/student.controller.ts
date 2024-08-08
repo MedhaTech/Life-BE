@@ -36,6 +36,7 @@ export default class StudentController extends BaseController {
         this.router.get(`${this.path}/:student_user_id/studentCertificate`, this.studentCertificate.bind(this));
         this.router.post(`${this.path}/emailOtp`, this.emailOtp.bind(this));
         this.router.post(`${this.path}/idcardUpload`, this.handleAttachment.bind(this));
+        this.router.put(`${this.path}/resetPassword`, validationMiddleware(studentResetPasswordSchema), this.resetPassword.bind(this));
         super.initializeRoutes();
     }
     protected async getData(req: Request, res: Response, next: NextFunction) {
@@ -394,6 +395,25 @@ export default class StudentController extends BaseController {
             } else {
                 return res.status(202).send(dispatcher(res, result.data, 'accepted', speeches.OTP_SEND, 202));
             }
+        } catch (error) {
+            next(error)
+        }
+    }
+    private async resetPassword(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        if(res.locals.role !== 'ADMIN'){
+            return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
+        }
+        const { user_id,mobile } = req.body;
+        if (!user_id) throw badRequest(speeches.USER_USERID_REQUIRED);
+        const findUser: any = await this.crudService.findOne(user, { where: { user_id } });
+        if (!findUser) throw badRequest(speeches.USER_NOT_FOUND);
+        if (findUser instanceof Error) throw findUser; 
+        const cryptoEncryptedString = await this.authService.generateCryptEncryption(mobile);
+        const passsword = await bcrypt.hashSync(cryptoEncryptedString, process.env.SALT || baseConfig.SALT)
+        try {
+            req.body['password'] = passsword;
+            const result = await this.crudService.update(user,req.body,{ where: { user_id } })
+            res.status(200).send(dispatcher(res, result, 'accepted', speeches.USER_PASSWORD_CHANGE, 200));
         } catch (error) {
             next(error)
         }
