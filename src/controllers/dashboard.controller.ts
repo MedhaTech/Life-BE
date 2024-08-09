@@ -544,8 +544,7 @@ FROM Life_db.students;
     COUNT(*) AS state_count
 FROM Life_db.students
 GROUP BY state
-ORDER BY state_count DESC
-LIMIT 5;
+ORDER BY state_count DESC;
 `, { type: QueryTypes.SELECT });
             res.status(200).send(dispatcher(res, result, 'done'))
         }
