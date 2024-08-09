@@ -320,13 +320,13 @@ export default class authService {
         <body style="border: solid;margin-right: 15%;margin-left: 15%; ">
         <img src="https://email-life.s3.ap-south-1.amazonaws.com/Ideas4Life-Email.png" alt="header" style="width: 100%;" />
         <div style="padding: 1% 5%;">
-        <h3>Dear Guide Teacher,</h3>
-        <p>Your temporary password to login to ATL Marathon platform is <b>${otp}.</b></p>
-        <p>Change your password as per your preference after you login with temporary password.</p>
-        <p><strong>Link: https://atl.unisolve.org</strong></p>
+        <h3>Dear Sir/Madam,</h3>
+        <p>Your Verification Code/Password to login to Ideas4Life platform is <b>${fulldata}.</b></p>
+        <p>Change your password as per your preference after you login</p>
+        <p><strong>Link: https://ideas4life.nic.in/</strong></p>
         <p>
         <strong>
-        Regards,<br> ATL Marathon
+        Regards,<br> Ideas4Life
         </strong>
         </p>
         </div></body>`
@@ -492,32 +492,25 @@ export default class authService {
     async triggerWelcome(requestBody: any) {
         let result: any = {};
         try {
-            const { school_name, udise_code, atl_code, district, state, pin_code, email, mobile } = requestBody;
-            var pass = email.trim();
-            var myArray = pass.split('@');
-            let word = myArray[0];
+            const { institution_name, district, state, email, mobile } = requestBody;
             const WelcomeTemp = `
             <body style="border: solid;margin-right: 15%;margin-left: 15%; ">
             <img src="https://email-life.s3.ap-south-1.amazonaws.com/Ideas4Life-Email.png" alt="header" style="width: 100%;" />
             <div style="padding: 1% 5%;">
-            <h3>Dear Guide Teacher,</h3>
-            <h4>Congratulations for successfully registering for ATL Marathon 23-24.</h4>
-            <p>Your schools has been successfully registered with the following details :
-            <br> School name: <strong> ${school_name}</strong> <br> UDISE CODE:<strong> ${udise_code}</strong>
-            <br> ATL CODE:<strong> ${atl_code}</strong>
+            <h3>Dear Sir/Madam,</h3>
+            <h4>Congratulations for successfully registering for Ideas4Life.</h4>
+            <br> Institution Name <strong> ${institution_name}</strong>
             <br> District:<strong> ${district}</strong>
              <br> State:<strong> ${state}</strong>
-             <br> Pincode:<strong> ${pin_code}</strong>
-            </p>
             <p> Below are your log-in details: </p>
             <p> Login User ID: <strong> ${email} </strong>
             <br>
-            Password: <strong>  ${word}
+            Password: <strong>  ${mobile}
             </strong> <br>
             Mobile no: <strong> ${mobile} </strong>
             <p>Please use your user id and password to login and proceed further.</p>
-            <p><strong>Link: https://atl.unisolve.org</strong></p>
-            <p><strong>Regards,<br> ATL Marathon</strong></p>
+            <p><strong>Link: https://ideas4life.nic.in/</strong></p>
+            <p><strong>Regards,<br> Ideas4Life</strong></p>
             </div></body>`
             const otp = await this.triggerEmail(email, 2, WelcomeTemp);
             if (otp instanceof Error) {
@@ -871,7 +864,7 @@ export default class authService {
                 if (!dataMap.has(state)) {
                     return {
                         state: state,
-                        'total enrolled':0,
+                        'total enrolled': 0,
                         reg_student: 0,
                         'team members': 0,
                         male_count: 0,
@@ -889,17 +882,17 @@ export default class authService {
                         Others_count: 0
                     };
                 }
-                const eachobj : any  =  dataMap.get(state)
-                if(dataMap.has(state)){
-                   eachobj['total enrolled'] = eachobj.reg_student+eachobj['team members']
+                const eachobj: any = dataMap.get(state)
+                if (dataMap.has(state)) {
+                    eachobj['total enrolled'] = eachobj.reg_student + eachobj['team members']
                 }
                 return eachobj;
             });
-            
+
             const finallist: any = updatedData
             const totals = {
                 state: "total",
-                'total enrolled':0,
+                'total enrolled': 0,
                 reg_student: 0,
                 'team members': 0,
                 male_count: 0,

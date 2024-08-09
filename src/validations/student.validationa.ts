@@ -49,13 +49,16 @@ export const studentResetPasswordSchema = Joi.object().keys({
     }),
     mobile: Joi.string().trim().regex(constents.ONLY_DIGIT_PATTERN)
 });
+export const studentForgotPasswordSchema = Joi.object().keys({
+    email: Joi.string().email()
+});
 
 export const studentUpdateSchema = Joi.object().keys({
     status: Joi.string().valid(...Object.values(constents.common_status_flags.list)),
     student_full_name: Joi.string().trim().min(1).regex(constents.ALPHA_NUMERIC_PATTERN),
     date_of_birth: Joi.date(),
     mobile: Joi.string().trim().regex(constents.ONLY_DIGIT_PATTERN),
-    email: Joi.string(),
+    email: Joi.string().email(),
     Gender: Joi.string().valid(...Object.values(constents.gender_flags.list)),
     Age: Joi.string().regex(constents.ALPHA_NUMERIC_PATTERN),
     institution_name: Joi.string().regex(constents.ALPHA_NUMERIC_PLUS_PATTERN),
