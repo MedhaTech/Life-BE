@@ -311,28 +311,20 @@ export default class authService {
 
         <p>If you did not initiate this registration, please ignore this email or contact our support team for assistance.</p>
 
-        <strong>
-        Regards,<br> Ideas4Life
-        </strong>
-        <p><strong> https://ideas4life.nic.in/ </strong></p>
+        <p><br/><strong> Thank you & regards, <br> Ideas4Life <br/> <a href="https://ideas4life.nic.in/" target="_blank">ideas4life.nic.in</a> </strong> </p>
         </div></body>`
         const forgotPassData = `
         <body style="border: solid;margin-right: 15%;margin-left: 15%; ">
         <img src="https://email-life.s3.ap-south-1.amazonaws.com/Ideas4Life-Email.png" alt="header" style="width: 100%;" />
         <div style="padding: 1% 5%;">
-        <h3>Dear Guide Teacher,</h3>
-        <p>Your temporary password to login to ATL Marathon platform is <b>${otp}.</b></p>
-        <p>Change your password as per your preference after you login with temporary password.</p>
-        <p><strong>Link: https://atl.unisolve.org</strong></p>
-        <p>
-        <strong>
-        Regards,<br> ATL Marathon
-        </strong>
-        </p>
+        <h3>Dear Applicant,</h3>
+        <p>Your Verification Code/Password is <b>${fulldata}.</b> Please login with Verification Code using following link. Change your password as per your preference after you login</p>
+        <p><strong>Link: https://ideas4life.nic.in/</strong></p>
+        <p><br/><strong> Thank you & regards, <br> Ideas4Life <br/> <a href="https://ideas4life.nic.in/" target="_blank">ideas4life.nic.in</a> </strong> </p>
         </div></body>`
-        const verifyOtpSubject = `Verification Code to register on Ideas4Life Platfrom`
-        const forgotPassSubjec = `Temporary Password to Login into Ideas4Life Platfrom`
-        const fullSubjec = `Welcome! Your Ideas4Life Registration was successful. Check out your login details`
+        const verifyOtpSubject = `Verify Your Email for Ideas4Life Registration`
+        const forgotPassSubjec = `Forgot Password - Ideas4Life`
+        const fullSubjec = `Registration Successful: Get Ready to Start! - Ideas4Life`
         AWS.config.update({
             region: 'ap-south-1',
             accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -492,32 +484,21 @@ export default class authService {
     async triggerWelcome(requestBody: any) {
         let result: any = {};
         try {
-            const { school_name, udise_code, atl_code, district, state, pin_code, email, mobile } = requestBody;
-            var pass = email.trim();
-            var myArray = pass.split('@');
-            let word = myArray[0];
+            const { institution_name, district, state, email, mobile } = requestBody;
             const WelcomeTemp = `
             <body style="border: solid;margin-right: 15%;margin-left: 15%; ">
             <img src="https://email-life.s3.ap-south-1.amazonaws.com/Ideas4Life-Email.png" alt="header" style="width: 100%;" />
             <div style="padding: 1% 5%;">
-            <h3>Dear Guide Teacher,</h3>
-            <h4>Congratulations for successfully registering for ATL Marathon 23-24.</h4>
-            <p>Your schools has been successfully registered with the following details :
-            <br> School name: <strong> ${school_name}</strong> <br> UDISE CODE:<strong> ${udise_code}</strong>
-            <br> ATL CODE:<strong> ${atl_code}</strong>
-            <br> District:<strong> ${district}</strong>
-             <br> State:<strong> ${state}</strong>
-             <br> Pincode:<strong> ${pin_code}</strong>
-            </p>
-            <p> Below are your log-in details: </p>
-            <p> Login User ID: <strong> ${email} </strong>
-            <br>
-            Password: <strong>  ${word}
-            </strong> <br>
-            Mobile no: <strong> ${mobile} </strong>
-            <p>Please use your user id and password to login and proceed further.</p>
-            <p><strong>Link: https://atl.unisolve.org</strong></p>
-            <p><strong>Regards,<br> ATL Marathon</strong></p>
+            <h3>Dear Applicant,</h3>
+            <h4>Congratulations! Your registration with Ideas4Life has been successfully completed.</h4>
+
+            <p> Please click the link below, enter the provided password, and proceed to submit your Idea(s) / Innovation(s): </p>
+            <p> URL : <strong> https://ideas4life.in/login </strong> <br/>
+                Login ID : <strong> ${email} </strong> <br/>
+                Password: <strong>  ${mobile} </strong> <P>
+            
+            <p style="color:#f00">*On successful login, Please reset your password.</p>
+            <p><br/><strong> Thank you & regards, <br> Ideas4Life <br/> <a href="https://ideas4life.nic.in/" target="_blank">ideas4life.nic.in</a> </strong> </p>
             </div></body>`
             const otp = await this.triggerEmail(email, 2, WelcomeTemp);
             if (otp instanceof Error) {
@@ -871,7 +852,7 @@ export default class authService {
                 if (!dataMap.has(state)) {
                     return {
                         state: state,
-                        'total enrolled':0,
+                        'total enrolled': 0,
                         reg_student: 0,
                         'team members': 0,
                         male_count: 0,
@@ -889,17 +870,17 @@ export default class authService {
                         Others_count: 0
                     };
                 }
-                const eachobj : any  =  dataMap.get(state)
-                if(dataMap.has(state)){
-                   eachobj['total enrolled'] = eachobj.reg_student+eachobj['team members']
+                const eachobj: any = dataMap.get(state)
+                if (dataMap.has(state)) {
+                    eachobj['total enrolled'] = eachobj.reg_student + eachobj['team members']
                 }
                 return eachobj;
             });
-            
+
             const finallist: any = updatedData
             const totals = {
                 state: "total",
-                'total enrolled':0,
+                'total enrolled': 0,
                 reg_student: 0,
                 'team members': 0,
                 male_count: 0,
