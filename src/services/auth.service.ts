@@ -311,28 +311,20 @@ export default class authService {
 
         <p>If you did not initiate this registration, please ignore this email or contact our support team for assistance.</p>
 
-        <strong>
-        Regards,<br> Ideas4Life
-        </strong>
-        <p><strong> https://ideas4life.nic.in/ </strong></p>
+        <p><br/><strong> Thank you & regards, <br> Ideas4Life <br/> <a href="https://ideas4life.nic.in/" target="_blank">ideas4life.nic.in</a> </strong> </p>
         </div></body>`
         const forgotPassData = `
         <body style="border: solid;margin-right: 15%;margin-left: 15%; ">
         <img src="https://email-life.s3.ap-south-1.amazonaws.com/Ideas4Life-Email.png" alt="header" style="width: 100%;" />
         <div style="padding: 1% 5%;">
-        <h3>Dear Sir/Madam,</h3>
-        <p>Your Verification Code/Password to login to Ideas4Life platform is <b>${fulldata}.</b></p>
-        <p>Change your password as per your preference after you login</p>
+        <h3>Dear Applicant,</h3>
+        <p>Your Verification Code/Password is <b>${fulldata}.</b> Please login with Verification Code using following link. Change your password as per your preference after you login</p>
         <p><strong>Link: https://ideas4life.nic.in/</strong></p>
-        <p>
-        <strong>
-        Regards,<br> Ideas4Life
-        </strong>
-        </p>
+        <p><br/><strong> Thank you & regards, <br> Ideas4Life <br/> <a href="https://ideas4life.nic.in/" target="_blank">ideas4life.nic.in</a> </strong> </p>
         </div></body>`
-        const verifyOtpSubject = `Verification Code to register on Ideas4Life Platfrom`
-        const forgotPassSubjec = `Temporary Password to Login into Ideas4Life Platfrom`
-        const fullSubjec = `Welcome! Your Ideas4Life Registration was successful. Check out your login details`
+        const verifyOtpSubject = `Verify Your Email for Ideas4Life Registration`
+        const forgotPassSubjec = `Forgot Password - Ideas4Life`
+        const fullSubjec = `Registration Successful: Get Ready to Start! - Ideas4Life`
         AWS.config.update({
             region: 'ap-south-1',
             accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -497,20 +489,16 @@ export default class authService {
             <body style="border: solid;margin-right: 15%;margin-left: 15%; ">
             <img src="https://email-life.s3.ap-south-1.amazonaws.com/Ideas4Life-Email.png" alt="header" style="width: 100%;" />
             <div style="padding: 1% 5%;">
-            <h3>Dear Sir/Madam,</h3>
-            <h4>Congratulations for successfully registering for Ideas4Life.</h4>
-            <br> Institution Name <strong> ${institution_name}</strong>
-            <br> District:<strong> ${district}</strong>
-             <br> State:<strong> ${state}</strong>
-            <p> Below are your log-in details: </p>
-            <p> Login User ID: <strong> ${email} </strong>
-            <br>
-            Password: <strong>  ${mobile}
-            </strong> <br>
-            Mobile no: <strong> ${mobile} </strong>
-            <p>Please use your user id and password to login and proceed further.</p>
-            <p><strong>Link: https://ideas4life.nic.in/</strong></p>
-            <p><strong>Regards,<br> Ideas4Life</strong></p>
+            <h3>Dear Applicant,</h3>
+            <h4>Congratulations! Your registration with Ideas4Life has been successfully completed.</h4>
+
+            <p> Please click the link below, enter the provided password, and proceed to submit your Idea(s) / Innovation(s): </p>
+            <p> URL : <strong> https://ideas4life.in/login </strong> <br/>
+                Login ID : <strong> ${email} </strong> <br/>
+                Password: <strong>  ${mobile} </strong> <P>
+            
+            <p style="color:#f00">*On successful login, Please reset your password.</p>
+            <p><br/><strong> Thank you & regards, <br> Ideas4Life <br/> <a href="https://ideas4life.nic.in/" target="_blank">ideas4life.nic.in</a> </strong> </p>
             </div></body>`
             const otp = await this.triggerEmail(email, 2, WelcomeTemp);
             if (otp instanceof Error) {
