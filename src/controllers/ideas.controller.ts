@@ -1035,6 +1035,7 @@ export default class ideasController extends BaseController {
             const newParamEvaluatorId = await this.authService.decryptGlobal(req.params.evaluator_id);
             const evaluator_id: any = newParamEvaluatorId
             const evaluation_status: any = newREQQuery.evaluation_status;
+            const state: any = newREQQuery.state;
             const district: any = newREQQuery.district;
             const rejected_reason: any = newREQQuery.rejected_reason;
             const level: any = newREQQuery.level;
@@ -1053,6 +1054,9 @@ export default class ideasController extends BaseController {
             }
             if (district) {
                 additionalFilter['district'] = district && typeof district == 'string' ? district : {}
+            }
+            if (state) {
+                additionalFilter['state'] = state && typeof state == 'string' ? state : {}
             }
             if (level && typeof level == 'string') {
                 switch (level) {
