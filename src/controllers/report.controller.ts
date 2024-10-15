@@ -1682,7 +1682,7 @@ GROUP BY institution_code
             (SELECT 
                 idea_id
             FROM
-                unisolve_db.evaluator_ratings
+                evaluator_ratings
             GROUP BY idea_id
             HAVING COUNT(*) >= 3) AS evalCount ON i.idea_id = evalCount.idea_id
         GROUP BY icNew.institution_id`, { type: QueryTypes.SELECT });
