@@ -120,12 +120,13 @@ export default class DashboardController extends BaseController {
             const selected_round_one_count = await db.query("SELECT count(idea_id) as 'selected_round_one_count' FROM ideas where evaluation_status = 'SELECTEDROUND1'", { type: QueryTypes.SELECT });
             const rejected_round_one_count = await db.query("SELECT count(idea_id) as 'rejected_round_one_count' FROM ideas where evaluation_status = 'REJECTEDROUND1'", { type: QueryTypes.SELECT });
             const l2_yet_to_processed = await db.query("SELECT COUNT(*) AS l2_yet_to_processed FROM l1_accepted;", { type: QueryTypes.SELECT });
-            const l2_processed = await db.query("SELECT idea_id, count(idea_id) AS l2_processed FROM unisolve_db.evaluator_ratings group by idea_id HAVING COUNT(idea_id) > 2", { type: QueryTypes.SELECT });
+            const l2_processed = await db.query("SELECT idea_id, count(idea_id) AS l2_processed FROM evaluator_ratings group by idea_id HAVING COUNT(idea_id) > 2", { type: QueryTypes.SELECT });
             const draft_count = await db.query("SELECT count(idea_id) as 'draft_count' FROM ideas where status = 'DRAFT' ", { type: QueryTypes.SELECT });
             const final_challenges = await db.query("SELECT count(idea_id) as 'final_challenges' FROM evaluation_results where status = 'ACTIVE'", { type: QueryTypes.SELECT });
-            const l1_yet_to_process = await db.query(`SELECT COUNT(idea_id) AS l1YetToProcess FROM unisolve_db.ideas WHERE (status = 'SUBMITTED') AND evaluation_status IS NULL OR evaluation_status = '';`, { type: QueryTypes.SELECT });
-            const final_evaluation_challenge = await db.query(`SELECT COUNT(idea_id) FROM unisolve_db.ideas WHERE final_result = '0'`, { type: QueryTypes.SELECT });
-            const final_evaluation_final = await db.query(`SELECT COUNT(idea_id) FROM unisolve_db.ideas WHERE final_result = '1'`, { type: QueryTypes.SELECT });
+            const l1_yet_to_process = await db.query(`SELECT COUNT(idea_id) AS l1YetToProcess FROM ideas WHERE (status = 'SUBMITTED') AND evaluation_status IS NULL OR evaluation_status = '';`, { type: QueryTypes.SELECT });
+            const final_evaluation_challenge = await db.query(`SELECT COUNT(idea_id) FROM ideas WHERE final_result = '0'`, { type: QueryTypes.SELECT });
+            const final_evaluation_final = await db.query(`SELECT COUNT(idea_id) FROM ideas WHERE final_result = '1'`, { type: QueryTypes.SELECT });
+           
             if (submitted_count instanceof Error) {
                 throw submitted_count
             }
@@ -168,6 +169,7 @@ export default class DashboardController extends BaseController {
             response['final_evaluation_final'] = Object.values(final_evaluation_final[0]).toString();
             res.status(200).send(dispatcher(res, response, "success"))
         } catch (err) {
+            console.log(err)
             next(err)
         }
     }
@@ -361,16 +363,16 @@ export default class DashboardController extends BaseController {
     //         const courseCompleted = await db.query(`select state,count(*) as courseCMP from (SELECT 
     //             state,cou
     //         FROM
-    //             unisolve_db.organizations AS og
+    //             organizations AS og
     //                 LEFT JOIN
     //             (SELECT 
     //                 organization_code, cou
     //             FROM
-    //                 unisolve_db.mentors AS mn
+    //                 mentors AS mn
     //             LEFT JOIN (SELECT 
     //                 user_id, COUNT(*) AS cou
     //             FROM
-    //                 unisolve_db.mentor_topic_progress
+    //                 mentor_topic_progress
     //             GROUP BY user_id having count(*)>=8) AS t ON mn.user_id = t.user_id ) AS c ON c.organization_code = og.organization_code WHERE og.status='ACTIVE' ${wherefilter}
     //         group by organization_id having cou>=8) as final group by state`, { type: QueryTypes.SELECT });
     //         const StudentCourseCompleted = await db.query(`SELECT 

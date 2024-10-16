@@ -341,6 +341,7 @@ export default class ideasController extends BaseController {
                                     }
                                 }
                             }
+                        
                             responseOfFindAndCountAll = await this.crudService.findAndCountAll(ideas, {
                                 attributes: [
                                     "idea_id",
@@ -392,7 +393,7 @@ export default class ideasController extends BaseController {
                                         condition,
                                         whereClauseStatusPart,
                                         additionalFilter,
-                                        { verified_by: { [Op.ne]: null } }
+                                        //{ verified_by: { [Op.ne]: null } }
                                     ]
                                 }, limit, offset,
                             });
@@ -469,34 +470,34 @@ export default class ideasController extends BaseController {
                                     required: false,
                                     attributes: [
                                         [
-                                            db.literal(`(SELECT  JSON_ARRAYAGG(param_1) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_1'
+                                            db.literal(`(SELECT  JSON_ARRAYAGG(param_1) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_1'
                                         ],
                                         [
-                                            db.literal(`(SELECT  JSON_ARRAYAGG(param_2) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_2'
+                                            db.literal(`(SELECT  JSON_ARRAYAGG(param_2) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_2'
                                         ],
                                         [
-                                            db.literal(`(SELECT  JSON_ARRAYAGG(param_3) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_3'
+                                            db.literal(`(SELECT  JSON_ARRAYAGG(param_3) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_3'
                                         ],
                                         [
-                                            db.literal(`(SELECT  JSON_ARRAYAGG(param_4) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_4'
+                                            db.literal(`(SELECT  JSON_ARRAYAGG(param_4) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_4'
                                         ],
                                         [
-                                            db.literal(`(SELECT  JSON_ARRAYAGG(param_5) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_5'
+                                            db.literal(`(SELECT  JSON_ARRAYAGG(param_5) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_5'
                                         ],
                                         [
-                                            db.literal(`(SELECT  JSON_ARRAYAGG(comments) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'comments'
+                                            db.literal(`(SELECT  JSON_ARRAYAGG(comments) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'comments'
                                         ],
                                         [
-                                            db.literal(`(SELECT  JSON_ARRAYAGG(overall) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'overall'
+                                            db.literal(`(SELECT  JSON_ARRAYAGG(overall) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'overall'
                                         ],
                                         [
-                                            db.literal(`(SELECT ROUND(AVG(CAST(overall AS FLOAT)), 2) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'overall_avg'
+                                            db.literal(`(SELECT ROUND(AVG(CAST(overall AS FLOAT)), 2) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'overall_avg'
                                         ],
                                         [
-                                            db.literal(`(SELECT  JSON_ARRAYAGG(created_at) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'created_at'
+                                            db.literal(`(SELECT  JSON_ARRAYAGG(created_at) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'created_at'
                                         ],
                                         [
-                                            db.literal(`(SELECT  JSON_ARRAYAGG(evaluator_id) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'evaluator_id'
+                                            db.literal(`(SELECT  JSON_ARRAYAGG(evaluator_id) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'evaluator_id'
                                         ],
                                         [
                                             db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = evaluator_ratings.created_by)`), 'rated_evaluated_name'
@@ -524,14 +525,14 @@ export default class ideasController extends BaseController {
                             break;
                     }
                 } else {
-                    let submitedWhereCodition = {}
-                    if (whereClauseStatusPart.status === 'SUBMITTED') {
-                        submitedWhereCodition = { verified_by: { [Op.ne]: null } }
-                    }
-                    if (whereClauseStatusPart.status === 'PENDINGFORAPPROVAL') {
-                        submitedWhereCodition = { verified_by: { [Op.is]: null } }
-                        whereClauseStatusPart.status = 'SUBMITTED'
-                    }
+                    // let submitedWhereCodition = {}
+                    // if (whereClauseStatusPart.status === 'SUBMITTED') {
+                    //     submitedWhereCodition = { verified_by: { [Op.ne]: null } }
+                    // }
+                    // if (whereClauseStatusPart.status === 'PENDINGFORAPPROVAL') {
+                    //     submitedWhereCodition = { verified_by: { [Op.is]: null } }
+                    //     whereClauseStatusPart.status = 'SUBMITTED'
+                    // }
                     responseOfFindAndCountAll = await this.crudService.findAndCountAll(ideas, {
                         attributes: [
                             "idea_id",
@@ -581,7 +582,7 @@ export default class ideasController extends BaseController {
                                 condition,
                                 whereClauseStatusPart,
                                 additionalFilter,
-                                submitedWhereCodition
+                                //submitedWhereCodition
                             ]
                         }, limit, offset,
                     });
@@ -895,19 +896,19 @@ export default class ideasController extends BaseController {
             let evaluator_user_id = newREQQuery.evaluator_user_id;
             if (!evaluator_user_id) throw unauthorized(speeches.ID_REQUIRED);
 
-            let activeDistrict = await this.crudService.findOne(evaluation_process, {
-                attributes: ['district'], where: { [Op.and]: [{ status: 'ACTIVE' }, { level_name: 'L1' }] }
+            let activeState = await this.crudService.findOne(evaluation_process, {
+                attributes: ['state'], where: { [Op.and]: [{ status: 'ACTIVE' }, { level_name: 'L1' }] }
             });
-            let districts = activeDistrict.dataValues.district;
-            const convertToDistrictArray = districts.split(",");
+            let states = activeState.dataValues.state;
+            const convertToStateArray = states.split(",");
             const paramStatus: any = newREQQuery.status;
             let boolStatusWhereClauseRequired = false;
 
             if (paramStatus && (paramStatus in constents.challenges_flags.list)) {
-                whereClauseStatusPart = { "status": paramStatus, district: { [Op.in]: convertToDistrictArray } };
+                whereClauseStatusPart = { "status": paramStatus, state: { [Op.in]: convertToStateArray } };
                 boolStatusWhereClauseRequired = true;
             } else {
-                whereClauseStatusPart = { "status": "SUBMITTED", district: { [Op.in]: convertToDistrictArray } };
+                whereClauseStatusPart = { "status": "SUBMITTED", state: { [Op.in]: convertToStateArray } };
                 boolStatusWhereClauseRequired = true;
             };
 
@@ -915,7 +916,7 @@ export default class ideasController extends BaseController {
 
             let level = newREQQuery.level;
             if (level && typeof level == 'string') {
-                let districtsArray = districts.replace(/,/g, "','")
+                let statesArray = states.replace(/,/g, "','")
                 switch (level) {
                     case 'L1':
                         attributesNeedFetch = [
@@ -943,11 +944,11 @@ export default class ideasController extends BaseController {
                             "youtubelink",
                             "technology",
                             [
-                                db.literal(`( SELECT count(*) FROM ideas as idea where idea.verified_by <> 'null')`),
+                                db.literal(`( SELECT count(*) FROM ideas as idea where idea.status = 'SUBMITTED')`),
                                 'overAllIdeas'
                             ],
                             [
-                                db.literal(`(SELECT count(*) FROM ideas as idea where idea.evaluation_status is null AND idea.verified_by <> 'null' AND idea.district IN ('${districtsArray}'))`),
+                                db.literal(`( SELECT count(*) FROM ideas as idea where idea.evaluation_status is null AND idea.status = 'SUBMITTED' AND idea.state IN ('${statesArray}'))`),
                                 'openIdeas'
                             ],
                             [
@@ -957,9 +958,7 @@ export default class ideasController extends BaseController {
                             whereClause = {
                                 [Op.and]: [
                                     whereClauseStatusPart,
-                                    { evaluation_status: { [Op.is]: null } },
-                                    { verified_by: { [Op.ne]: null } }
-
+                                    { evaluation_status: { [Op.is]: null } }
                                 ]
                             }
                         challengeResponse = await this.crudService.findOne(ideas, {
@@ -984,13 +983,13 @@ export default class ideasController extends BaseController {
                         };
                         break;
                     case 'L2':
-                        let activeDistrict = await this.crudService.findOne(evaluation_process, {
-                            attributes: ['district'], where: { [Op.and]: [{ status: 'ACTIVE' }, { level_name: 'L2' }] }
+                        let activeState = await this.crudService.findOne(evaluation_process, {
+                            attributes: ['state'], where: { [Op.and]: [{ status: 'ACTIVE' }, { level_name: 'L2' }] }
                         });
-                        let districts = activeDistrict.dataValues.district;
-                        if (districts !== null) {
-                            let districtsArray = districts.replace(/,/g, "','")
-                            challengeResponse = await db.query("SELECT theme_name,problem_statement,problem_statement_description,ideas.idea_id, ideas.theme_problem_id, ideas.idea_title, ideas.student_id, ideas.solution_statement, ideas.detailed_solution, ideas.prototype_available, ideas.Prototype_file, ideas.idea_available, ideas.self_declaration, ideas.initiated_by, ideas.created_at, ideas.submitted_at, ideas.status, ideas.district, ideas.verified_by, (SELECT COUNT(*) FROM ideas AS idea WHERE idea.evaluation_status = 'SELECTEDROUND1') AS 'overAllIdeas', (SELECT COUNT(*) - SUM(CASE WHEN FIND_IN_SET('" + evaluator_user_id.toString() + "', evals) > 0 THEN 1 ELSE 0 END) FROM l1_accepted WHERE l1_accepted.district IN ('" + districtsArray + "')) AS 'openIdeas', (SELECT COUNT(*) FROM evaluator_ratings AS A WHERE A.evaluator_id = '" + evaluator_user_id.toString() + "') AS 'evaluatedIdeas' FROM l1_accepted AS l1_accepted LEFT OUTER JOIN ideas ON l1_accepted.idea_id = ideas.idea_id left join themes_problems as the on ideas.theme_problem_id = the.theme_problem_id WHERE l1_accepted.district IN ('" + districtsArray + "') AND NOT FIND_IN_SET('" + evaluator_user_id.toString() + "', l1_accepted.evals) ORDER BY RAND() LIMIT 1", { type: QueryTypes.SELECT });
+                        let states = activeState.dataValues.state
+                        if (states !== null) {
+                            let statesArray = states.replace(/,/g, "','")
+                            challengeResponse = await db.query("SELECT theme_name,problem_statement,problem_statement_description,ideas.idea_id, ideas.theme_problem_id, ideas.idea_title, ideas.student_id, ideas.solution_statement, ideas.detailed_solution, ideas.prototype_available, ideas.Prototype_file, ideas.idea_available, ideas.self_declaration, ideas.initiated_by, ideas.created_at, ideas.submitted_at, ideas.status, ideas.district, ideas.verified_by, (SELECT COUNT(*) FROM ideas AS idea WHERE idea.evaluation_status = 'SELECTEDROUND1') AS 'overAllIdeas', (SELECT COUNT(*) - SUM(CASE WHEN FIND_IN_SET('" + evaluator_user_id.toString() + "', evals) > 0 THEN 1 ELSE 0 END) FROM l1_accepted WHERE l1_accepted.state IN ('" + statesArray + "')) AS 'openIdeas', (SELECT COUNT(*) FROM evaluator_ratings AS A WHERE A.evaluator_id = '" + evaluator_user_id.toString() + "') AS 'evaluatedIdeas' FROM l1_accepted AS l1_accepted LEFT OUTER JOIN ideas ON l1_accepted.idea_id = ideas.idea_id left join themes_problems as the on ideas.theme_problem_id = the.theme_problem_id WHERE l1_accepted.state IN ('" + statesArray + "') AND NOT FIND_IN_SET('" + evaluator_user_id.toString() + "', l1_accepted.evals) ORDER BY RAND() LIMIT 1", { type: QueryTypes.SELECT });
                         } else {
                             challengeResponse = await db.query(`SELECT theme_name,problem_statement,problem_statement_description,ideas.idea_id, ideas.theme_problem_id, ideas.idea_title, ideas.student_id, ideas.solution_statement, ideas.detailed_solution, ideas.prototype_available, ideas.Prototype_file, ideas.idea_available, ideas.self_declaration, ideas.initiated_by, ideas.created_at, ideas.submitted_at, ideas.status, ideas.district, ideas.verified_by, (SELECT COUNT(*) FROM ideas AS idea WHERE idea.evaluation_status = 'SELECTEDROUND1') AS 'overAllIdeas', (SELECT COUNT(*) - SUM(CASE WHEN FIND_IN_SET(${evaluator_user_id.toString()}, evals) > 0 THEN 1 ELSE 0 END) FROM l1_accepted) AS 'openIdeas', (SELECT COUNT(*) FROM evaluator_ratings AS A WHERE A.evaluator_id = ${evaluator_user_id.toString()}) AS 'evaluatedIdeas' FROM l1_accepted AS l1_accepted LEFT OUTER JOIN ideas ON l1_accepted.idea_id = ideas.idea_id left join themes_problems as the on ideas.theme_problem_id = the.theme_problem_id WHERE NOT FIND_IN_SET(${evaluator_user_id.toString()}, l1_accepted.evals) ORDER BY RAND() LIMIT 1`, { type: QueryTypes.SELECT });
                         }
@@ -1036,6 +1035,7 @@ export default class ideasController extends BaseController {
             const newParamEvaluatorId = await this.authService.decryptGlobal(req.params.evaluator_id);
             const evaluator_id: any = newParamEvaluatorId
             const evaluation_status: any = newREQQuery.evaluation_status;
+            const state: any = newREQQuery.state;
             const district: any = newREQQuery.district;
             const rejected_reason: any = newREQQuery.rejected_reason;
             const level: any = newREQQuery.level;
@@ -1054,6 +1054,9 @@ export default class ideasController extends BaseController {
             }
             if (district) {
                 additionalFilter['district'] = district && typeof district == 'string' ? district : {}
+            }
+            if (state) {
+                additionalFilter['state'] = state && typeof state == 'string' ? state : {}
             }
             if (level && typeof level == 'string') {
                 switch (level) {
@@ -1099,7 +1102,7 @@ export default class ideasController extends BaseController {
                                 //     db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
                                 // ]
                                 // [
-                                //     db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
+                                //     db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM students  AS s LEFT OUTER JOIN teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
                                 // ]
                                 // [
                                 //     db.literal(`(SELECT mentorTeamOrg.organization_name FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.student_id = team.student_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id LEFT OUTER JOIN organizations AS mentorTeamOrg ON mentorTeam.organization_code = mentorTeamOrg.organization_code WHERE challenge_responses.student_id =  \`challenge_response\`.\`student_id\` GROUP BY challenge_response.student_id)`), 'organization_name'
@@ -1170,7 +1173,7 @@ export default class ideasController extends BaseController {
                                 //     db.literal(`(SELECT team_name FROM teams As t WHERE t.student_id =  \`ideas\`.\`student_id\` )`), 'team_name'
                                 // ]
                                 // [
-                                //     db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM unisolve_db.students  AS s LEFT OUTER JOIN unisolve_db.teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
+                                //     db.literal(`(SELECT JSON_ARRAYAGG(student_full_name) FROM students  AS s LEFT OUTER JOIN teams AS t ON s.student_id = t.student_id WHERE t.student_id = \`ideas\`.\`student_id\` )`), 'team_members'
                                 // ]
                                 // [
                                 //     db.literal(`(SELECT mentorTeamOrg.organization_name FROM challenge_responses AS challenge_responses LEFT OUTER JOIN teams AS team ON challenge_response.student_id = team.student_id LEFT OUTER JOIN mentors AS mentorTeam ON team.mentor_id = mentorTeam.mentor_id LEFT OUTER JOIN organizations AS mentorTeamOrg ON mentorTeam.organization_code = mentorTeamOrg.organization_code WHERE challenge_responses.student_id =  \`challenge_response\`.\`student_id\` GROUP BY challenge_response.student_id)`), 'organization_name'
@@ -1350,50 +1353,50 @@ export default class ideasController extends BaseController {
                         required: false,
                         attributes: [
                             [
-                                db.literal(`(SELECT  JSON_ARRAYAGG(param_1) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_1'
+                                db.literal(`(SELECT  JSON_ARRAYAGG(param_1) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_1'
                             ],
                             [
-                                db.literal(`(SELECT ROUND(AVG(CAST(param_1 AS FLOAT)), 2) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_1_avg'
+                                db.literal(`(SELECT ROUND(AVG(CAST(param_1 AS FLOAT)), 2) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_1_avg'
                             ],
                             [
-                                db.literal(`(SELECT  JSON_ARRAYAGG(param_2) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_2'
+                                db.literal(`(SELECT  JSON_ARRAYAGG(param_2) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_2'
                             ],
                             [
-                                db.literal(`(SELECT ROUND(AVG(CAST(param_2 AS FLOAT)), 2) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_2_avg'
+                                db.literal(`(SELECT ROUND(AVG(CAST(param_2 AS FLOAT)), 2) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_2_avg'
                             ],
                             [
-                                db.literal(`(SELECT  JSON_ARRAYAGG(param_3) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_3'
+                                db.literal(`(SELECT  JSON_ARRAYAGG(param_3) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_3'
                             ],
                             [
-                                db.literal(`(SELECT ROUND(AVG(CAST(param_3 AS FLOAT)), 2) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_3_avg'
+                                db.literal(`(SELECT ROUND(AVG(CAST(param_3 AS FLOAT)), 2) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_3_avg'
                             ],
 
                             [
-                                db.literal(`(SELECT  JSON_ARRAYAGG(param_4) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_4'
+                                db.literal(`(SELECT  JSON_ARRAYAGG(param_4) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_4'
                             ],
                             [
-                                db.literal(`(SELECT ROUND(AVG(CAST(param_4 AS FLOAT)), 2) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_4_avg'
+                                db.literal(`(SELECT ROUND(AVG(CAST(param_4 AS FLOAT)), 2) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_4_avg'
                             ],
                             [
-                                db.literal(`(SELECT  JSON_ARRAYAGG(param_5) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_5'
+                                db.literal(`(SELECT  JSON_ARRAYAGG(param_5) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_5'
                             ],
                             [
-                                db.literal(`(SELECT ROUND(AVG(CAST(param_5 AS FLOAT)), 2) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_5_avg'
+                                db.literal(`(SELECT ROUND(AVG(CAST(param_5 AS FLOAT)), 2) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'param_5_avg'
                             ],
                             [
-                                db.literal(`(SELECT  JSON_ARRAYAGG(comments) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'comments'
+                                db.literal(`(SELECT  JSON_ARRAYAGG(comments) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'comments'
                             ],
                             [
-                                db.literal(`(SELECT  JSON_ARRAYAGG(overall) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'overall'
+                                db.literal(`(SELECT  JSON_ARRAYAGG(overall) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'overall'
                             ],
                             [
-                                db.literal(`(SELECT ROUND(AVG(CAST(overall AS FLOAT)), 2) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'overall_avg'
+                                db.literal(`(SELECT ROUND(AVG(CAST(overall AS FLOAT)), 2) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'overall_avg'
                             ],
                             [
-                                db.literal(`(SELECT  JSON_ARRAYAGG(created_at) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'created_at'
+                                db.literal(`(SELECT  JSON_ARRAYAGG(created_at) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'created_at'
                             ],
                             [
-                                db.literal(`(SELECT  JSON_ARRAYAGG(evaluator_id) FROM unisolve_db.evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'evaluator_id'
+                                db.literal(`(SELECT  JSON_ARRAYAGG(evaluator_id) FROM evaluator_ratings as rating WHERE rating.idea_id = \`ideas\`.\`idea_id\`)`), 'evaluator_id'
                             ],
                             // [
                             //     db.literal(`(SELECT full_name FROM users As s WHERE s.user_id = evaluator_ratings.created_by)`), 'rated_evaluated_name'
