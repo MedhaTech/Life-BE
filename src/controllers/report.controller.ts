@@ -46,7 +46,7 @@ export default class ReportController extends BaseController {
         this.router.get(`${this.path}/ideaEvaluationReport`, this.getIdeaEvaluationReport.bind(this));
         this.router.get(`${this.path}/Districtwiseabstract`, this.getDistrictwiseabstract.bind(this));
         this.router.get(`${this.path}/ideaDeatailsTable`, this.getideaDeatailsTable.bind(this));
-        
+
 
         // super.initializeRoutes();
     }
@@ -788,14 +788,14 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
                 wherefilter = `&& district_name= '${district_name}'`;
             }
             let wherefilter2 = '';
-            if(status === 'Draft'){
-                wherefilter2=  `i.status = 'DRAFT'`
-            }else if(status === 'Submitted'){
-                wherefilter2=  `i.status = 'SUBMITTED' && i.verified_by IS NOT NULL`
-            }else if(status === 'Pending for Approval'){
-                wherefilter2=  `i.status = 'SUBMITTED' && i.verified_by IS NULL`
-            }else{
-                wherefilter2=  `i.status like '%%'`
+            if (status === 'Draft') {
+                wherefilter2 = `i.status = 'DRAFT'`
+            } else if (status === 'Submitted') {
+                wherefilter2 = `i.status = 'SUBMITTED' && i.verified_by IS NOT NULL`
+            } else if (status === 'Pending for Approval') {
+                wherefilter2 = `i.status = 'SUBMITTED' && i.verified_by IS NULL`
+            } else {
+                wherefilter2 = `i.status like '%%'`
             }
             data = await db.query(`SELECT 
             ins.institution_code,
@@ -876,67 +876,38 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
             } else if (Object.keys(req.query).length !== 0) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
             }
-            const district_name = newREQQuery.district_name;
+            const state = newREQQuery.state;
             let wherefilter = '';
-            if (district_name !== 'All Districts') {
-                wherefilter = `&& district_name= '${district_name}'`;
+            if (state !== 'All States') {
+                wherefilter = `&& i.state = '${state}'`;
             }
             const summary = await db.query(`SELECT 
-            ins.institution_code,
-            ins.institution_name,
-            state_name,
-            district_name,
-            block_name,
-            place_name,
-            ins.principal_name,
-            ins.principal_mobile,
-            ins.principal_email,
-            m.mentor_name,
-            m.mentor_mobile,
-            m.mentor_email,
-            teams.team_name,
-            (SELECT 
-                    GROUP_CONCAT(student_full_name
-                            SEPARATOR ', ') AS names
-                FROM
-                    students
-                WHERE
-                    students.team_id = teams.team_id) AS students_names,
-            i.status,
-            evaluation_status,
-            final_result,
-            idea_title,
-            solution_statement,
-            detailed_solution,
-            prototype_available,
-            Prototype_file,
-            idea_available,
-            self_declaration,
-            verified_by,
-            theme_name,
-            problem_statement,
-            problem_statement_description,
-            evaluation_status
-        FROM
-            ideas AS i
-                LEFT JOIN
-            teams ON i.team_id = teams.team_id
-                LEFT JOIN
-            mentors AS m ON teams.mentor_id = m.mentor_id
-                LEFT JOIN
-            institutions AS ins ON m.institution_id = ins.institution_id
-                LEFT JOIN
-            places AS p ON ins.place_id = p.place_id
-                LEFT JOIN
-            blocks AS b ON p.block_id = b.block_id
-                LEFT JOIN
-            districts AS d ON b.district_id = d.district_id
-                LEFT JOIN
-            states AS s ON d.state_id = s.state_id
-                LEFT JOIN
-            themes_problems AS the ON i.theme_problem_id = the.theme_problem_id
-        WHERE
-           evaluation_status in ('REJECTEDROUND1','SELECTEDROUND1') ${wherefilter}`, { type: QueryTypes.SELECT });
+    student_full_name,
+    mobile,
+    email,
+    Gender,
+    Age,
+    institution_name,
+    s.state,
+    s.district,
+    theme_name,
+    technology,
+    idea_title,
+    detailed_solution,
+    prototype_available,
+    youtubelink,
+    Prototype_file,
+    idea_available,
+    fpp,
+    i.status,
+    evaluation_status
+FROM
+    ideas AS i
+        JOIN
+    students AS s ON i.student_id = s.student_id
+        JOIN
+    themes_problems AS tp ON i.theme_problem_id = tp.theme_problem_id 
+    where evaluation_status in ('REJECTEDROUND1','SELECTEDROUND1') ${wherefilter} `, { type: QueryTypes.SELECT });
             data = summary;
             if (!data) {
                 throw notFound(speeches.DATA_NOT_FOUND)
@@ -962,122 +933,42 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
             } else if (Object.keys(req.query).length !== 0) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
             }
-            const district_name = newREQQuery.district_name;
+            const state = newREQQuery.state;
             let wherefilter = '';
-            if (district_name !== 'All Districts') {
-                wherefilter = `&& district_name= '${district_name}'`;
+            if (state !== 'All States') {
+                wherefilter = `&& i.state = '${state}'`;
             }
             const summary = await db.query(`SELECT 
-            ins.institution_code,
-            ins.institution_name,
-            state_name,
-            district_name,
-            block_name,
-            place_name,
-            ins.principal_name,
-            ins.principal_mobile,
-            ins.principal_email,
-            m.mentor_name,
-            m.mentor_mobile,
-            m.mentor_email,
-            teams.team_name,
-            (SELECT 
-                    GROUP_CONCAT(student_full_name
-                            SEPARATOR ', ') AS names
-                FROM
-                    students
-                WHERE
-                    students.team_id = teams.team_id) AS students_names,
-            i.status,
-            evaluation_status,
-            final_result,
-            idea_title,
-            solution_statement,
-            detailed_solution,
-            prototype_available,
-            Prototype_file,
-            idea_available,
-            self_declaration,
-            verified_by,
-            theme_name,
-            problem_statement,
-            problem_statement_description,
-            evaluation_status,
-            (SELECT 
-                    AVG(overall)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS overall_score,
-            (SELECT 
-                    AVG(param_1)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS novelty,
-            (SELECT 
-                    AVG(param_2)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS useful,
-            (SELECT 
-                    AVG(param_3)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS feasibility,
-            (SELECT 
-                    AVG(param_4)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS scalability,
-            (SELECT 
-                    AVG(param_5)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS sustainability,
-            (SELECT 
-                    COUNT(idea_id)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS eval_count,
-            (SELECT 
-                    (AVG(param_1) + AVG(param_2)) / 2 AS sum_params
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS quality_score,
-            (SELECT 
-                    (AVG(param_3) + AVG(param_4) + AVG(param_5)) / 3 AS sum_params
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS feasibility_score,
-            final_result
-        FROM
-            ideas AS i
-                LEFT JOIN
-            teams ON i.team_id = teams.team_id
-                LEFT JOIN
-            mentors AS m ON teams.mentor_id = m.mentor_id
-                LEFT JOIN
-            institutions AS ins ON m.institution_id = ins.institution_id
-                LEFT JOIN
-            places AS p ON ins.place_id = p.place_id
-                LEFT JOIN
-            blocks AS b ON p.block_id = b.block_id
-                LEFT JOIN
-            districts AS d ON b.district_id = d.district_id
-                LEFT JOIN
-            states AS s ON d.state_id = s.state_id
-                LEFT JOIN
-            themes_problems AS the ON i.theme_problem_id = the.theme_problem_id
-        WHERE
-            evaluation_status = 'SELECTEDROUND1' ${wherefilter}`, { type: QueryTypes.SELECT });
+    student_full_name,
+    mobile,
+    email,
+    Gender,
+    Age,
+    institution_name,
+    s.state,
+    s.district,
+    theme_name,
+    technology,
+    idea_title,
+    detailed_solution,
+    prototype_available,
+    youtubelink,
+    Prototype_file,
+    idea_available,
+    fpp,
+    i.status,
+    final_result,
+    overall
+FROM
+    ideas AS i
+       left JOIN
+    students AS s ON i.student_id = s.student_id
+       left JOIN
+    themes_problems AS tp ON i.theme_problem_id = tp.theme_problem_id
+        left JOIN
+    evaluator_ratings AS er ON i.idea_id = er.idea_id
+WHERE
+    evaluation_status = 'SELECTEDROUND1' ${wherefilter}`, { type: QueryTypes.SELECT });
             data = summary;
             if (!data) {
                 throw notFound(speeches.DATA_NOT_FOUND)
@@ -1103,121 +994,42 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
             } else if (Object.keys(req.query).length !== 0) {
                 return res.status(400).send(dispatcher(res, '', 'error', 'Bad Request', 400));
             }
-            const district_name = newREQQuery.district_name;
+            const state = newREQQuery.state;
             let wherefilter = '';
-            if (district_name !== 'All Districts') {
-                wherefilter = `&& district_name= '${district_name}'`;
+            if (state !== 'All States') {
+                wherefilter = `&& i.state = '${state}'`;
             }
             const summary = await db.query(`SELECT 
-            ins.institution_code,
-            ins.institution_name,
-            state_name,
-            district_name,
-            block_name,
-            place_name,
-            ins.principal_name,
-            ins.principal_mobile,
-            ins.principal_email,
-            m.mentor_name,
-            m.mentor_mobile,
-            m.mentor_email,
-            teams.team_name,
-            (SELECT 
-                    GROUP_CONCAT(student_full_name
-                            SEPARATOR ', ') AS names
-                FROM
-                    students
-                WHERE
-                    students.team_id = teams.team_id) AS students_names,
-            i.status,
-            evaluation_status,
-            final_result,
-            idea_title,
-            solution_statement,
-            detailed_solution,
-            prototype_available,
-            Prototype_file,
-            idea_available,
-            self_declaration,
-            verified_by,
-            theme_name,
-            problem_statement,
-            problem_statement_description,
-            evaluation_status,
-            (SELECT 
-                    AVG(overall)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS overall_score,
-            (SELECT 
-                    AVG(param_1)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS novelty,
-            (SELECT 
-                    AVG(param_2)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS useful,
-            (SELECT 
-                    AVG(param_3)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS feasibility,
-            (SELECT 
-                    AVG(param_4)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS scalability,
-            (SELECT 
-                    AVG(param_5)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS sustainability,
-            (SELECT 
-                    COUNT(idea_id)
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS eval_count,
-            (SELECT 
-                    (AVG(param_1) + AVG(param_2)) / 2 AS sum_params
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS quality_score,
-            (SELECT 
-                    (AVG(param_3) + AVG(param_4) + AVG(param_5)) / 3 AS sum_params
-                FROM
-                    evaluator_ratings AS eval_r
-                WHERE
-                    eval_r.idea_id = i.idea_id) AS feasibility_score,
-            final_result
-        FROM
-            ideas AS i
-                LEFT JOIN
-            teams ON i.team_id = teams.team_id
-                LEFT JOIN
-            mentors AS m ON teams.mentor_id = m.mentor_id
-                LEFT JOIN
-            institutions AS ins ON m.institution_id = ins.institution_id
-                LEFT JOIN
-            places AS p ON ins.place_id = p.place_id
-                LEFT JOIN
-            blocks AS b ON p.block_id = b.block_id
-                LEFT JOIN
-            districts AS d ON b.district_id = d.district_id
-                LEFT JOIN
-            states AS s ON d.state_id = s.state_id
-                LEFT JOIN
-            themes_problems AS the ON i.theme_problem_id = the.theme_problem_id
-            where final_result <>'null'  ${wherefilter}`, { type: QueryTypes.SELECT });
+    student_full_name,
+    mobile,
+    email,
+    Gender,
+    Age,
+    institution_name,
+    s.state,
+    s.district,
+    theme_name,
+    technology,
+    idea_title,
+    detailed_solution,
+    prototype_available,
+    youtubelink,
+    Prototype_file,
+    idea_available,
+    fpp,
+    i.status,
+    final_result,
+    overall
+FROM
+    ideas AS i
+       left JOIN
+    students AS s ON i.student_id = s.student_id
+       left JOIN
+    themes_problems AS tp ON i.theme_problem_id = tp.theme_problem_id
+        left JOIN
+    evaluator_ratings AS er ON i.idea_id = er.idea_id
+WHERE
+    final_result <>'null' ${wherefilter}`, { type: QueryTypes.SELECT });
             data = summary;
             if (!data) {
                 throw notFound(speeches.DATA_NOT_FOUND)
@@ -1249,27 +1061,20 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
                 wherefilter = `WHERE org.state= '${state}'`;
             }
             const summary = await db.query(`SELECT 
-            district_name,
-            COALESCE(totalSubmited, 0) AS totalSubmited,
-            COALESCE(accepted, 0) AS accepted,
-            COALESCE(rejected, 0) AS rejected
-        FROM
-            districts
-                LEFT JOIN
-            (SELECT 
-                COUNT(*) AS totalSubmited,
-                    district,
-                    COUNT(CASE
-                        WHEN evaluation_status = 'SELECTEDROUND1' THEN 1
-                    END) AS accepted,
-                    COUNT(CASE
-                        WHEN evaluation_status = 'REJECTEDROUND1' THEN 1
-                    END) AS rejected
-            FROM
-                ideas AS i
-            WHERE
-                i.status = 'SUBMITTED' && i.verified_by IS NOT NULL
-            GROUP BY district) AS disWiseCount ON districts.district_name = disWiseCount.district`, { type: QueryTypes.SELECT });
+    state,
+    COUNT(*) AS totalSubmited,
+    COUNT(CASE
+        WHEN evaluation_status = 'SELECTEDROUND1' THEN 1
+    END) AS accepted,
+    COUNT(CASE
+        WHEN evaluation_status = 'REJECTEDROUND1' THEN 1
+    END) AS rejected
+FROM
+    ideas AS i
+WHERE
+    i.status = 'SUBMITTED'
+GROUP BY state
+ORDER BY state`, { type: QueryTypes.SELECT });
             data = summary;
             if (!data) {
                 throw notFound(speeches.DATA_NOT_FOUND)
@@ -1328,9 +1133,7 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
             let data: any = {}
             const summary = await db.query(`SELECT 
             idea_id,
-            AVG(overall) AS overall,
-            (AVG(param_1) + AVG(param_2)) / 2 AS Quality,
-            (AVG(param_3) + AVG(param_4) + AVG(param_5)) / 3 AS Feasibility
+            AVG(overall) AS overall
         FROM
             evaluator_ratings
         GROUP BY idea_id;
