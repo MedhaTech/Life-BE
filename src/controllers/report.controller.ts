@@ -900,7 +900,8 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
     idea_available,
     fpp,
     i.status,
-    evaluation_status
+    evaluation_status,
+    i.idea_id
 FROM
     ideas AS i
         JOIN
@@ -958,15 +959,14 @@ FROM
     fpp,
     i.status,
     final_result,
-    overall
+    i.idea_id,
+    (select avg(overall) from evaluator_ratings as er where er.idea_id = i.idea_id) as overall
 FROM
     ideas AS i
        left JOIN
     students AS s ON i.student_id = s.student_id
        left JOIN
     themes_problems AS tp ON i.theme_problem_id = tp.theme_problem_id
-        left JOIN
-    evaluator_ratings AS er ON i.idea_id = er.idea_id
 WHERE
     evaluation_status = 'SELECTEDROUND1' ${wherefilter}`, { type: QueryTypes.SELECT });
             data = summary;
@@ -1019,15 +1019,14 @@ WHERE
     fpp,
     i.status,
     final_result,
-    overall
+    i.idea_id,
+    (select avg(overall) from evaluator_ratings as er where er.idea_id = i.idea_id) as overall
 FROM
     ideas AS i
        left JOIN
     students AS s ON i.student_id = s.student_id
        left JOIN
     themes_problems AS tp ON i.theme_problem_id = tp.theme_problem_id
-        left JOIN
-    evaluator_ratings AS er ON i.idea_id = er.idea_id
 WHERE
     final_result <>'null' ${wherefilter}`, { type: QueryTypes.SELECT });
             data = summary;
@@ -1228,25 +1227,19 @@ GROUP BY idea_id;`, { type: QueryTypes.SELECT });
                 wherefilter = `WHERE org.state= '${state}'`;
             }
             const summary = await db.query(`SELECT 
-            district_name,
-            COALESCE(runners, 0) AS runners,
-            COALESCE(winners, 0) AS winners
-        FROM
-            districts
-                LEFT JOIN
-            (SELECT 
-                district,
-                    COUNT(CASE
-                        WHEN final_result = '0' THEN 1
-                    END) AS runners,
-                    COUNT(CASE
-                        WHEN final_result = '1' THEN 1
-                    END) AS winners
-            FROM
-                ideas AS i
-            WHERE
-                i.status = 'SUBMITTED'
-            GROUP BY district) AS disWiseCount ON districts.district_name = disWiseCount.district`, { type: QueryTypes.SELECT });
+    state,
+    COUNT(CASE
+        WHEN final_result = '0' THEN 1
+    END) AS runners,
+    COUNT(CASE
+        WHEN final_result = '1' THEN 1
+    END) AS winners
+FROM
+    ideas AS i
+WHERE
+    i.status = 'SUBMITTED'
+GROUP BY state
+ORDER BY state`, { type: QueryTypes.SELECT });
             data = summary;
             if (!data) {
                 throw notFound(speeches.DATA_NOT_FOUND)
