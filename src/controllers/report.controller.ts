@@ -900,7 +900,8 @@ GROUP BY d.district_name`, { type: QueryTypes.SELECT });
     idea_available,
     fpp,
     i.status,
-    evaluation_status
+    evaluation_status,
+    i.idea_id
 FROM
     ideas AS i
         JOIN
