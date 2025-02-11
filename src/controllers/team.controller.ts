@@ -22,7 +22,7 @@ export default class TeamController extends BaseController {
         this.validations = new ValidationsHolder(teamSchema, teamUpdateSchema);
     }
     protected initializeRoutes(): void {
-        this.router.post(`${this.path}/teamidcardUpload`,this.handleAttachment.bind(this));
+        this.router.post(`${this.path}/teamidcardUpload`, this.handleAttachment.bind(this));
         super.initializeRoutes();
     }
     protected async getData(req: Request, res: Response, next: NextFunction) {
@@ -40,26 +40,26 @@ export default class TeamController extends BaseController {
         if (!student_id) {
             throw unauthorized(speeches.USER_TEAMID_REQUIRED)
         }
-        if(student_id){
+        if (student_id) {
             const where: any = {};
-        where[`student_id`] = student_id;
-        const data = await this.crudService.findAll(team,{
-            where:[where]
-        })
-        return res.status(200).send(dispatcher(res, data, 'success'));
+            where[`student_id`] = student_id;
+            const data = await this.crudService.findAll(team, {
+                where: [where]
+            })
+            return res.status(200).send(dispatcher(res, data, 'success'));
         }
     }
     protected async handleAttachment(req: Request, res: Response, next: NextFunction) {
-        if(res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT'){
-            return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
         try {
             const rawfiles: any = req.files;
             const userId = res.locals.user_id;
             const files: any = Object.values(rawfiles);
-            const allowedTypes = ['image/jpeg', 'image/png','application/msword','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            const allowedTypes = ['image/jpeg', 'image/png', 'application/msword', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
             if (!allowedTypes.includes(files[0].type)) {
-                return res.status(400).send(dispatcher(res,'','error','This file type not allowed',400)); 
+                return res.status(400).send(dispatcher(res, '', 'error', 'This file type not allowed', 400));
             }
             const errs: any = [];
             let attachments: any = [];
@@ -76,9 +76,9 @@ export default class TeamController extends BaseController {
             let file_name_prefix: any;
             if (process.env.DB_HOST?.includes("prod")) {
                 file_name_prefix = `team/idCard/${userId}`
-            } else if(process.env.DB_HOST?.includes("dev")){
+            } else if (process.env.DB_HOST?.includes("dev")) {
                 file_name_prefix = `team/idCard/dev/${userId}`
-            }else {
+            } else {
                 file_name_prefix = `team/idCard/stage/${userId}`
             }
             for (const file_name of Object.keys(files)) {
@@ -106,22 +106,18 @@ export default class TeamController extends BaseController {
         }
     }
     protected async createData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        if(res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT'){
-            return res.status(401).send(dispatcher(res,'','error', speeches.ROLE_ACCES_DECLINE,401));
+        if (res.locals.role !== 'ADMIN' && res.locals.role !== 'STUDENT') {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.ROLE_ACCES_DECLINE, 401));
         }
-        try{
-            // const { student_email } = req.body;
-            // const user_res = await this.crudService.findOne(user, { where: { username: student_email } });
-            // const team_res = await this.crudService.findOne(team, { where: { student_email: student_email } });
-            // if (user_res) {
-            //     throw badRequest('Email already exists');
-            // }
-            // if (team_res) {
-            //     throw badRequest('Email already exists');
-            // }
-            const payload = this.autoFillTrackingColumns(req, res, team);
-            const data = await this.crudService.create(team,payload);
-            return res.status(201).send(dispatcher(res, data, 'success', 'Student successfully Created', 201));
+        try {
+            const teamCount = await this.crudService.findAndCountAll(team, { where: { student_id: req.body.student_id } })
+            if (teamCount.count < 4) {
+                const payload = this.autoFillTrackingColumns(req, res, team);
+                const data = await this.crudService.create(team, payload);
+                return res.status(201).send(dispatcher(res, data, 'success', 'Student successfully Created', 201));
+            }else{
+                throw badRequest('Team Menmber reached Maximum limit');
+            }
         }
         catch (err) {
             next(err)

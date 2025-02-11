@@ -15,7 +15,7 @@ export const challengeRatingSchema = Joi.object().keys({
     param_3: Joi.number(),
     param_4: Joi.number(),
     param_5: Joi.number(),
-    comments: Joi.string(),
+    comments: Joi.string().regex(constents.ALPHA_NUMERIC_PLUS_PATTERN),
     overall: Joi.number()
 });
 
