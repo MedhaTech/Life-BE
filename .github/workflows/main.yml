@@ -36,9 +36,9 @@ jobs:
             sudo git fetch origin &&
             sudo git checkout master &&
             sudo git pull origin master &&
-            npm i -f && NODE_OPTIONS="--max-old-space-size=1024" npm run build && npm run start:prod && pm2 save -f'
+            sudo npm run build && sudo npm run start:prod && sudo pm2 save -f'
   
       
-            npm i -f && NODE_OPTIONS="--max-old-space-size=1024" npm run build && npm run start:prod && pm2 save -f'
+        
 
        
