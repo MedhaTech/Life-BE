@@ -106,7 +106,7 @@ export default class EvaluatorController extends BaseController {
                 throw notFound();
             } else {
                 const evaluatorData = await this.crudService.update(modelLoaded, payload, { where: where });
-                if(req.body.password){
+                if (req.body.password) {
                     payload['password'] = await bcrypt.hashSync(req.body.password, process.env.SALT || baseConfig.SALT)
                 }
                 const userData = await this.crudService.update(user, payload, { where: { user_id: findEvaluatorDetail.dataValues.user_id } });
@@ -176,8 +176,11 @@ export default class EvaluatorController extends BaseController {
             return res.status(202).send(dispatcher(res, result.data, 'accepted', speeches.USER_PASSWORD_CHANGE, 202));
         }
     }
-
-   
-
-    
+    protected async deleteData(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            return res.status(401).send(dispatcher(res, '', 'error', speeches.USER_RISTRICTED, 401));
+        } catch (error) {
+            next(error);
+        }
+    }
 };
